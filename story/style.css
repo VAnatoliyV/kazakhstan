@@ -154,3 +154,11 @@ body.idle #fs, :fullscreen #fs { opacity: 0; pointer-events: none; }
 @keyframes drip { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(26px); opacity: 0; } }
 @keyframes sob { from { transform: rotate(-2deg) translateY(0); } to { transform: rotate(2deg) translateY(-2px); } }
 .meme2 .mt { font-size: 1.35vw; } .meme2 .ms { font-size: 1.05vw; }
+
+.tmh .yr { font-size: 2.6vw; font-weight: 900; margin-right: .6vw; } .tmh { font-size: 2vw; display: flex; align-items: center; }
+.blk { justify-content: space-between; align-items: flex-start; }
+.blk .ico { font-size: 7vw; line-height: 1; filter: drop-shadow(0 .6vh .8vh rgba(0,0,0,.4)); animation: bob 2.4s ease-in-out infinite alternate; }
+.blk .ico.sm { font-size: 4.2vw; }
+.blk .icos { font-size: 4vw; line-height: 1.2; display: grid; grid-template-columns: repeat(3, auto); gap: 1vh 2.2vw; filter: drop-shadow(0 .6vh .8vh rgba(0,0,0,.4)); }
+.blk.g1 { background: linear-gradient(160deg, #5b47a8, #3c2f72); }
+@keyframes bob { from { transform: translateY(0); } to { transform: translateY(-.8vh); } }
