@@ -1039,7 +1039,7 @@ lbl('g_tengiz', 'globe', gl(53.38, 46.15), 'Tengiz', 'city', { occl: true });
 lbl('g_novo', 'globe', gl(37.77, 44.72), 'Novorossiysk, Russia', 'city', { occl: true });
 lbl('g_bsea', 'globe', gl(34, 43.2, 1.004), 'BLACK SEA', 'water', { occl: true });
 lbl('g_csea', 'globe', gl(50.6, 42.6, 1.004), 'CASPIAN SEA', 'water', { occl: true });
-lbl('g_cpc', 'globe', gl(45, 47.6, 1.02), 'CPC pipeline', 'cap', { occl: true });
+lbl('g_cpc', 'globe', gl(45, 47.6, 1.02), 'CPC · Caspian Pipeline Consortium', 'cap', { occl: true });
 
 const tmpV = V();
 function updateLabels() {
@@ -1128,7 +1128,7 @@ const SLIDES = [
   { // 8 pipeline via Russia
     world: 'globe', cam: gcam(47, 39, 1.95, .22, { t: ll2v(47, 45, .62), orbit: 0 }), gu: { kz: 1, rus: .5, chn: 0 }, show: ['cpc'], labels: ['g_tengiz', 'g_novo', 'g_bsea', 'g_csea', 'g_cpc'],
     html: box('left:4vw;top:11vh;width:31vw', kick('And then') + `<br>` + ttl('The oil leaves through Russia')
-      + stat('80%+', 'of our pipeline crude exports go through the CPC pipeline to Russia’s Black Sea coast', 'gold', 1.0)
+      + stat('80%+', 'of our pipeline crude exports go through the CPC (Caspian Pipeline Consortium) pipeline to Russia’s Black Sea coast', 'gold', 1.0)
       + stat('20.75%', 'Kazakhstan’s share of that pipeline', 'white', 1.5))
       + src('Source: Interfax (2026, May 25), CPC shareholders and export volumes.')
   },
