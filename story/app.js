@@ -706,27 +706,38 @@ function flagCanvas(code, lines) {
 }
 const FLAG = {};
 const flagTex = (code, lines) => FLAG[code + (lines ? 'L' : '')] || (FLAG[code + (lines ? 'L' : '')] = new T.CanvasTexture(flagCanvas(code, lines)));
+const FLAGSQ = {};
+function flagTexSq(code) {
+  if (FLAGSQ[code]) return FLAGSQ[code];
+  const c = document.createElement('canvas'); c.width = c.height = 128; c.getContext('2d').drawImage(flagCanvas(code), -32, 0, 192, 128);
+  return (FLAGSQ[code] = new T.CanvasTexture(c));
+}
 const basic = (o) => new T.MeshBasicMaterial(Object.assign({ transparent: true }, o));
 function flagBubble(code, r) {
   const g = new T.Group();
   const sh = new T.Mesh(new T.CircleGeometry(r * 1.12, 48), basic({ color: 0x000000, opacity: .35 })); sh.position.set(r * .12, -r * .14, -.02); g.add(sh);
   const ring = new T.Mesh(new T.CircleGeometry(r * 1.1, 48), basic({ color: 0xe9e4f5 })); ring.position.z = -.01; g.add(ring);
-  g.add(new T.Mesh(new T.CircleGeometry(r, 48), basic({ map: flagTex(code) })));
+  g.add(new T.Mesh(new T.CircleGeometry(r, 48), basic({ map: flagTexSq(code) })));
   return g;
 }
 
 // --- slide: flag constellation (income vs complexity), schematic
-const BUB = [['jp', 2.3, 34e3], ['ch', 2.1, 99e3], ['kr', 2.1, 33e3], ['de', 1.9, 53e3], ['sg', 1.9, 85e3], ['us', 1.4, 82e3], ['gb', 1.4, 49e3], ['fr', 1.2, 44e3], ['it', 1.2, 39e3],
-  ['cn', 1.15, 12.6e3], ['mx', 1.0, 13.8e3], ['pl', 1.0, 22e3], ['th', .9, 7e3], ['tr', .6, 13e3], ['no', .6, 87e3], ['vn', .5, 4.3e3], ['in', .4, 2.5e3], ['ae', .4, 53e3],
-  ['ru', .3, 13.8e3], ['sa', .25, 33e3], ['ua', .2, 5e3], ['br', .1, 10e3], ['id', 0, 4.9e3], ['ar', -.05, 13.7e3], ['eg', -.3, 3.5e3], ['uz', -.65, 2.5e3],
-  ['ml', -1.3, .9e3], ['bf', -1.2, .85e3], ['ng', -1.55, 1.6e3], ['gn', -1.7, 1.4e3], ['cd', -1.7, .65e3], ['kz', -.4, 13e3]];
+const BUB = [['jp', 2.3, 34e3], ['ch', 2.1, 99e3], ['de', 1.8, 53e3], ['us', 1.4, 82e3], ['cn', 1.15, 12.6e3], ['ae', .4, 53e3], ['ru', .3, 13.8e3],
+  ['br', .05, 7e3], ['in', .4, 2.5e3], ['ml', -1.3, .9e3], ['cd', -1.7, .65e3], ['kz', -.4, 13e3]];
 const bubPos = (eci, gdp) => V(-6.4 + (eci + 1.9) / 4.3 * 12.8, .4 + (Math.log10(gdp) - 2.7) / (5.1 - 2.7) * 5.6, 0);
 {
   const g = new T.Group(); CH.add(g);
   const items = BUB.map(([c, e, y], i) => {
-    const kz = c === 'kz', b = flagBubble(c, kz ? .55 : .3); const p = bubPos(e, y); b.position.copy(p); g.add(b);
+    const kz = c === 'kz', b = flagBubble(c, kz ? .55 : .34); const p = bubPos(e, y); b.position.copy(p); g.add(b);
     return { b, p, kz, d: kz ? 3.2 : .3 + Math.random() * 1.6, seed: Math.random() * 10 };
   });
+  let sd = 7; const rnd = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+  const dotM = basic({ color: 0xe6defa, opacity: .55 }), dots = [];
+  for (let k = 0; dots.length < 70 && k < 2000; k++) {
+    const e = -1.8 + rnd() * 4, gy = Math.pow(10, 2.85 + (e + 1.9) / 4.3 * 1.75 + (rnd() - .5) * .7), p = bubPos(e, gy);
+    if (p.y < .3 || p.y > 6.3 || items.some(o => o.p.distanceTo(p) < (o.kz ? 1.05 : .6)) || dots.some(d => d.p.distanceTo(p) < .32)) continue;
+    const d = new T.Mesh(new T.CircleGeometry(.075, 16), dotM); d.position.copy(p); d.position.z = -.03; g.add(d); dots.push({ d, p, t: .2 + rnd() * 1.2 });
+  }
   const ax = new T.LineBasicMaterial({ color: 0xcfc6ea, transparent: true, opacity: .45 });
   g.add(new T.Line(new T.BufferGeometry().setFromPoints([V(-6.8, .1, -.1), V(6.8, .1, -.1)]), ax));
   g.add(new T.Line(new T.BufferGeometry().setFromPoints([V(-6.8, .1, -.1), V(-6.8, 6.4, -.1)]), ax));
@@ -738,6 +749,7 @@ const bubPos = (eci, gdp) => V(-6.4 + (eci + 1.9) / 4.3 * 12.8, .4 + (Math.log10
       o.b.scale.setScalar(Math.max(.001, pop) * (o.kz ? 1 + .06 * Math.sin(t * 3) : 1));
       o.b.position.set(o.p.x, o.p.y + .04 * Math.sin(t * 1.2 + o.seed), o.p.z);
     });
+    dots.forEach(o => o.d.scale.setScalar(Math.max(.001, ease(clamp((t - o.t) / .4, 0, 1)))));
     const kz = items[items.length - 1];
     kzRing.position.copy(kz.b.position); kzRing.position.z = .01; kzRing.scale.setScalar(1 + .25 * ((t * .8) % 1)); kzRing.material.opacity *= sstep(3.4, 3.8, t) * (1 - ((t * .8) % 1));
   };
@@ -809,18 +821,29 @@ function washerModel() {
 
 // --- slide: Singapore vs Kazakhstan stacks of money
 const STK = [['kz', 46.8, -3.4], ['sg', 62.9, 1.0]], SK = .075;
+let BILLS;
+function billsTex() {
+  if (BILLS) return BILLS;
+  const c = document.createElement('canvas'); c.width = 256; c.height = 256; const g = c.getContext('2d');
+  for (let y = 0; y < 256; y += 4) { const k = 150 + Math.random() * 40; g.fillStyle = `rgb(${k * .62|0},${k|0},${k * .6|0})`; g.fillRect(0, y, 256, 3); g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, y + 3, 256, 1); }
+  BILLS = new T.CanvasTexture(c); BILLS.wrapS = BILLS.wrapT = T.RepeatWrapping; BILLS.repeat.set(1, 3); return BILLS;
+}
 const stacks = [];
 {
   const g = new T.Group(); CH.add(g);
   STK.forEach(([c, v, x]) => {
     const geo = new T.BoxGeometry(2.2, 1, 1.4); geo.translate(0, .5, 0);
-    const side = new T.MeshStandardMaterial({ map: flagTex(c, true), roughness: .6 });
-    const top = new T.MeshStandardMaterial({ color: 0x9fd39a, roughness: .7 });
+    const side = new T.MeshStandardMaterial({ map: billsTex(), roughness: .7 });
+    const top = new T.MeshStandardMaterial({ color: 0xa9d8a0, roughness: .7 });
     const m = new T.Mesh(geo, [side, side, top, top, side, side]); m.position.x = x; m.scale.y = .001; g.add(m); stacks.push(m);
+    const fl = new T.Group(); g.add(fl); m.userData.flag = fl;
+    const back = new T.Mesh(new T.PlaneGeometry(1.86, 1.28), basic({ color: 0xf4f1fa })); fl.add(back);
+    const f = new T.Mesh(new T.PlaneGeometry(1.74, 1.16), basic({ map: flagTex(c) })); f.position.z = .005; fl.add(f);
   });
   const it = reg('stacks', g);
   it.update = t => stacks.forEach((m, i) => {
     const e = ease(clamp((t - .6 - i * .9) / 1.6, 0, 1)); m.scale.y = Math.max(.001, STK[i][1] * SK * e);
+    const fl = m.userData.flag; const r = m.rotation.y; fl.position.set(m.position.x + Math.sin(r) * .72, Math.max(.7, m.scale.y - .9), Math.cos(r) * .72); fl.rotation.y = r; fl.visible = m.scale.y > 1.6;
     m.rotation.y = .25 * Math.sin(t * .5 + i);
   });
 }
@@ -949,9 +972,9 @@ lbl('c_ben', 'chart', () => { const R = CH.children.find(o => o.userData.R).user
 // ---- STORY labels
 lbl('kz_b', 'chart', () => bubPos(-.4, 13e3).add(V(0, .95, 0)), 'KAZAKHSTAN', 'stk', { dyn: true });
 lbl('ax_x', 'chart', V(3.6, -.35, 0), 'Complexity of what a country makes →', 'axis');
-lbl('ax_y', 'chart', V(-6.75, 6.75, 0), '↑ Income per person', 'axis');
-[['b_jp', 'Japan', 'jp'], ['b_ch', 'Switzerland', 'ch'], ['b_ml', 'Mali', 'ml'], ['b_cd', 'DR Congo', 'cd'], ['b_ru', 'Russia', 'ru'], ['b_us', 'USA', 'us']].forEach(([k, t, c]) => {
-  const b = BUB.find(x => x[0] === c); lbl(k, 'chart', bubPos(b[1], b[2]).add(V(0, -.48, 0)), t, 'mini');
+lbl('ax_y', 'chart', V(-5.3, 4.9, 0), '↑ Income per person', 'axis');
+[['b_jp', 'Japan', 'jp'], ['b_ch', 'Switzerland', 'ch'], ['b_de', 'Germany', 'de'], ['b_us', 'USA', 'us'], ['b_cn', 'China', 'cn'], ['b_ae', 'UAE', 'ae'], ['b_ru', 'Russia', 'ru'], ['b_br', 'Brazil', 'br'], ['b_in', 'India', 'in'], ['b_ml', 'Mali', 'ml'], ['b_cd', 'DR Congo', 'cd']].forEach(([k, t, c]) => {
+  const b = BUB.find(x => x[0] === c); lbl(k, 'chart', bubPos(b[1], b[2]).add(V(0, -.52, 0)), t, 'mini');
 });
 STK.forEach(([c, v, x], i) => {
   lbl('st_v' + i, 'chart', () => V(x, stacks[i].scale.y + .15, 0), '$' + v.toFixed(1) + 'B', 'val', { dyn: true });
@@ -1010,7 +1033,7 @@ const SLIDES = [
       + src('Sources: Bureau of National Statistics (2026); World Bank (2026).')
   },
   { // 3 flag constellation
-    shade: 'shadeT', world: 'chart', nobloom: true, cam: PAPER_CAM(V(0, 3.3, 12.6), V(0, 3.25, 0), .03, .004), show: ['bubbles'], labels: ['kz_b', 'ax_x', 'ax_y', 'b_jp', 'b_ch', 'b_ml', 'b_cd', 'b_ru', 'b_us'],
+    shade: 'shadeT', world: 'chart', nobloom: true, cam: PAPER_CAM(V(0, 3.3, 12.6), V(0, 3.25, 0), .03, .004), show: ['bubbles'], labels: ['kz_b', 'ax_x', 'ax_y', 'b_jp', 'b_ch', 'b_de', 'b_us', 'b_cn', 'b_ae', 'b_ru', 'b_br', 'b_in', 'b_ml', 'b_cd'],
     html: box('left:4vw;top:7vh;width:40vw', kick('The big picture') + `<br>` + ttl('Stuck in the middle'))
       + box('right:4vw;bottom:13vh;width:27vw', `<div class="panel a" style="--d:3.6s">` + para('Rich countries make <b>many complex things</b>. The poorest sell <b>one raw thing</b>. Kazakhstan sits right in between.', 3.6, 'margin:0;max-width:none') + `</div>`)
       + src('Schematic positions. Based on Harvard Growth Lab, Atlas of Economic Complexity, and World Bank GDP per capita.')
