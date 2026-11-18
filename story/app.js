@@ -1049,7 +1049,7 @@ function stunnedModel() {
 }
 {
   const w = stunnedModel(); w.position.set(-6.1, 0, .6); CH.add(w);
-  const it = reg('stacks', w);
+  const it = reg('none', w);
   it.update = t => {
     const e = ease(clamp((t - 2.6) / .7, 0, 1)); w.scale.setScalar(Math.max(.001, e) * 1.25);
     w.rotation.y = .55; w.userData.neck.rotation.x = -.55 - .04 * Math.sin(t * 2); w.userData.neck.rotation.z = -.05 * Math.sin(t * 1.3);
@@ -1176,9 +1176,10 @@ const SLIDES = [
       + src('Source: Bureau of National Statistics (2026a).')
   },
   { // 5 Singapore
-    shade: 'shadeT', world: 'chart', nobloom: true, cam: PAPER_CAM(V(0, 3.4, 12), V(0, 2.9, 0), 0, .01), show: ['stacks'], labels: ['st_v0', 'st_v1', 'st_n0', 'st_n1', 'st_meme'],
+    shade: 'shadeT', world: 'chart', nobloom: true, cam: PAPER_CAM(V(0, 3.4, 12), V(0, 2.9, 0), 0, .01), show: ['stacks'], labels: ['st_v0', 'st_v1', 'st_n0', 'st_n1'],
     html: box('left:4vw;top:7vh;width:60vw', kick('The Singapore paradox') + `<br>` + ttl('No oil, but more oil money', .3, 'font-size:3vw'))
       + box('right:4vw;top:30vh;width:22vw', `<div class="panel a" style="--d:3.3s">` + para('Singapore has <b>no oil at all</b>. It refines other countries’ crude and sells fuel.', 3.3, 'margin:0 0 1.4vh;max-width:none') + para('Kazakhstan has only <b>3 big refineries</b>.', 3.8, 'margin:0;max-width:none') + `</div>`)
+      + `<div class="lookup a" style="--d:2.8s"><img src="img/lookup.jpg" alt=""><div class="lcap">Kazakhstan looking at<br>Singapore’s oil money</div></div>`
       + src('Sources: OEC (2024), refined petroleum exports, Singapore, 2022; Bureau of National Statistics via Reuters (2023), Kazakhstan oil exports, 2022.')
   },
   { // 6 McDonald's

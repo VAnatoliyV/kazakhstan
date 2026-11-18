@@ -179,3 +179,8 @@ body.idle #fs, :fullscreen #fs { opacity: 0; pointer-events: none; }
 .backbtn:hover { filter: brightness(1.1); }
 .legend div { font-size: 1.15vw; margin: .6vh 0; display: flex; align-items: center; gap: .8vw; }
 .legend i { display: inline-block; width: 2.4vw; height: .45vw; border-radius: 999px; box-shadow: 0 0 10px currentColor; }
+
+.lookup { position: absolute; left: 2.5vw; bottom: 13vh; width: 15vw; background: #0f0b1c; padding: .6vw .6vw 1vh; border-radius: .5vw; transform: rotate(-2deg); box-shadow: .45vw .55vw 0 rgba(0,0,0,.38); }
+.slide.on .lookup.a { transform: rotate(-2deg); }
+.lookup img { width: 100%; display: block; border-radius: .3vw; }
+.lookup .lcap { font-size: 1vw; font-weight: 800; text-align: center; margin-top: .8vh; line-height: 1.25; }
