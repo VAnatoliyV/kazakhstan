@@ -981,7 +981,7 @@ STK.forEach(([c, v, x], i) => {
   lbl('st_n' + i, 'chart', V(x, -.1, .8), i === 0 ? 'Kazakhstan · crude oil exports' : 'Singapore · refined fuel exports', 'node');
 });
 lbl('bg_r', 'chart', V(-4.2, -.05, .7), 'Beef patties from Russia', 'node');
-lbl('bg_b', 'chart', V(3.2, -.05, 1.3), 'McDonald’s Kazakhstan · 2016 → Jan 2023', 'node');
+lbl('bg_b', 'chart', V(3.2, -.05, 1.3), 'McDonald’s Kazakhstan<br>2016 → Jan 2023', 'node');
 lbl('bg_x', 'chart', V(-.5, 3.1, 0), 'sanctions · supply cut', 'redcap');
 PIES.forEach(([n, s, x], i) => {
   lbl('pi_n' + i, 'chart', V(x, .2, .4), n, 'stk');
@@ -1054,6 +1054,21 @@ const SLIDES = [
     shade: 'shadeT', world: 'chart', nobloom: true, cam: PAPER_CAM(V(-.4, 2.6, 10.5), V(-.4, 1.5, 0), 0, 0), show: ['burger'], labels: ['bg_r', 'bg_b', 'bg_x'],
     html: box('left:4vw;top:7vh;width:60vw', kick('A small story') + `<br>` + ttl('The McDonald’s lesson'))
       + box('right:4vw;top:9vh;width:26vw', `<div class="panel a" style="--d:3.8s">` + para('The beef came from Russia. After the sanctions, <b>no local supplier</b> could replace it, so the brand left.', 3.8, 'margin:0;max-width:none') + `</div>`)
+      + `<div class="meme2 a" style="--d:4.4s"><svg viewBox="0 0 200 170" class="sadb">
+  <g class="body">
+    <path d="M30 78 Q30 22 100 20 Q170 22 170 78 Z" class="bt"/>
+    <ellipse cx="70" cy="40" rx="5" ry="2.5" class="sd"/><ellipse cx="100" cy="32" rx="5" ry="2.5" class="sd"/><ellipse cx="128" cy="42" rx="5" ry="2.5" class="sd"/><ellipse cx="88" cy="55" rx="5" ry="2.5" class="sd"/><ellipse cx="118" cy="58" rx="5" ry="2.5" class="sd"/>
+    <path d="M24 80 Q40 92 56 82 Q72 94 88 82 Q104 94 120 82 Q136 94 152 82 Q168 92 176 80 L176 86 L24 86 Z" class="lt"/>
+    <path d="M26 86 L174 86 L160 98 L40 98 Z" class="ch"/>
+    <rect x="34" y="96" width="132" height="22" rx="10" class="pt"/>
+    <path d="M36 118 L164 118 Q164 142 100 144 Q36 142 36 118 Z" class="bb"/>
+    <path d="M72 62 Q80 56 88 62" class="brow"/><path d="M112 62 Q120 56 128 62" class="brow"/>
+    <circle cx="80" cy="70" r="5" class="eye"/><circle cx="120" cy="70" r="5" class="eye"/>
+    <path d="M86 112 Q100 102 114 112" class="mouth"/>
+    <path d="M80 76 q-3 8 0 12 q3 -4 0 -12" class="tear t1"/><path d="M120 76 q-3 8 0 12 q3 -4 0 -12" class="tear t2"/>
+    <path d="M30 106 L8 92" class="arm"/><path d="M170 106 L192 92" class="arm"/>
+    <path d="M78 144 L74 162" class="arm"/><path d="M122 144 L126 162" class="arm"/>
+  </g></svg><div class="mcap"><div class="mt">POV: your only beef supplier gets sanctioned</div><div class="ms">“guys… we messed up”</div></div></div>`
       + src('Source: Reuters (2023, January 4), McDonald’s set to exit Kazakhstan over Russian supply curbs.')
   },
   { // 7 three whales
