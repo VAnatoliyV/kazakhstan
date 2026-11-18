@@ -1221,7 +1221,7 @@ const SLIDES = [
     html: box('left:4vw;top:7vh;width:60vw', kick('What it costs people') + `<br>` + ttl('Growth people can’t feel'))
       + box('right:4vw;top:30vh;width:27vw', `<div class="small a" style="--d:.6s;margin-bottom:2vh;letter-spacing:.2em">ANNUAL INFLATION, %</div>`
       + stat('~16%', 'interest rate: loans stay expensive', 'gold', 3.2) + stat('2% drop', 'in real wages: prices rose faster than paychecks', 'red', 3.7))
-      + `<div class="lookup better a" style="--d:4.6s"><img src="img/better.jpg" alt=""><div class="lcap">Everyone after inflation hits 12.3%</div></div>`
+      + `<div class="lookup better a" style="--d:4.6s"><img src="img/worse.jpg" alt=""><div class="lcap">Everyone after inflation hits 12.3%</div></div>`
       + src('Sources: Bureau of National Statistics (2026c); National Bank of Kazakhstan (2026); World Bank (2026a).')
   },
   { // 10 plan
