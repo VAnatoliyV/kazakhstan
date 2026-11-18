@@ -863,42 +863,52 @@ function burgerModel() {
 
 function bearModel() {
   const g = new T.Group();
-  const fur = std(0x7a4a26, 0, 0, { roughness: .9 }), light = std(0xc8945e, 0, 0, { roughness: .9 }), dark = std(0x1a1010, 0, 0, { roughness: .4 });
+  const fur = std(0x7a4a26, 0, 0, { roughness: .9 }), light = std(0xd2a06a, 0, 0, { roughness: .9 }), dark = std(0x1a1010, 0, 0, { roughness: .4 });
+  const hatM = std(0x2b2018, 0, 0, { roughness: 1 }), hatF = std(0x5a4636, 0, 0, { roughness: 1 });
   const body = new T.Mesh(new T.SphereGeometry(.55, 32, 24), fur); body.scale.set(1, 1.1, .85); body.position.y = .62; g.add(body);
   const belly = new T.Mesh(new T.SphereGeometry(.4, 24, 16), light); belly.scale.set(1, 1.1, .5); belly.position.set(0, .55, .32); g.add(belly);
-  const head = new T.Group(); head.position.y = 1.42; g.add(head);
+  for (const x of [-.3, .3]) {
+    const leg = new T.Mesh(new T.SphereGeometry(.2, 16, 12), fur); leg.scale.set(1, .75, 1.4); leg.position.set(x, .14, .32); g.add(leg);
+    const pad = new T.Mesh(new T.CircleGeometry(.11, 16), light); pad.position.set(x, .14, .6); g.add(pad);
+  }
+  const head = new T.Group(); head.position.y = 1.4; g.add(head);
   head.add(new T.Mesh(new T.SphereGeometry(.38, 32, 24), fur));
-  const snout = new T.Mesh(new T.SphereGeometry(.17, 20, 16), light); snout.scale.set(1.1, .8, 1); snout.position.set(0, -.07, .32); head.add(snout);
-  const nose = new T.Mesh(new T.SphereGeometry(.06, 12, 10), dark); nose.position.set(0, -.02, .48); head.add(nose);
-  for (const x of [-.13, .13]) { const e = new T.Mesh(new T.SphereGeometry(.045, 12, 10), dark); e.position.set(x, .08, .33); head.add(e);
-    const ear = new T.Mesh(new T.SphereGeometry(.13, 16, 12), fur); ear.position.set(x * 2.2, .3, 0); head.add(ear);
-    const ie = new T.Mesh(new T.SphereGeometry(.07, 12, 10), light); ie.position.set(x * 2.2, .3, .07); head.add(ie); }
-  const hat = new T.Mesh(new T.CylinderGeometry(.26, .3, .22, 24), std(0x3a2a1e, 0, 0, { roughness: 1 })); hat.position.y = .36; head.add(hat);
-  for (const x of [-.3, .3]) { const l = new T.Mesh(new T.SphereGeometry(.2, 16, 12), fur); l.scale.set(1, .8, 1.3); l.position.set(x, .12, .2); g.add(l); }
-  // balalaika
-  const bal = new T.Group(); bal.position.set(.05, .7, .45); bal.rotation.z = -.9; g.add(bal);
+  const snout = new T.Mesh(new T.SphereGeometry(.17, 20, 16), light); snout.scale.set(1.1, .8, 1); snout.position.set(0, -.08, .32); head.add(snout);
+  const nose = new T.Mesh(new T.SphereGeometry(.065, 12, 10), dark); nose.scale.set(1.3, 1, 1); nose.position.set(0, -.03, .48); head.add(nose);
+  for (const x of [-.13, .13]) { const e = new T.Mesh(new T.SphereGeometry(.045, 12, 10), dark); e.position.set(x, .07, .34); head.add(e); }
+  // ushanka
+  const cap = new T.Mesh(new T.SphereGeometry(.41, 32, 16, 0, PI * 2, 0, PI / 2), hatM); cap.scale.y = .75; cap.position.y = .1; head.add(cap);
+  const band = new T.Mesh(new T.TorusGeometry(.4, .08, 12, 40), hatF); band.rotation.x = PI / 2; band.position.y = .12; head.add(band);
+  for (const x of [-.38, .38]) { const f = new T.Mesh(new T.BoxGeometry(.1, .3, .26), hatF); f.position.set(x, -.06, 0); head.add(f); }
+  const star = new T.Mesh(new T.CircleGeometry(.06, 5), basic({ color: 0xff3b47 })); star.position.set(0, .22, .38); head.add(star);
+  // balalaika held across the chest, neck up to the left
+  const bal = new T.Group(); bal.position.set(.18, .5, .58); bal.rotation.z = .85; g.add(bal);
   const wood = std(0xd99a4e, 0, 0, { roughness: .5 }), wood2 = std(0x6b3a1a, 0, 0, { roughness: .6 });
-  const tri = new T.Mesh(new T.CylinderGeometry(.42, .42, .1, 3), wood); tri.rotation.x = PI / 2; tri.rotation.y = PI / 2; tri.rotation.z = PI; tri.position.y = -.05; bal.add(tri);
-  const hole = new T.Mesh(new T.CircleGeometry(.06, 16), basic({ color: 0x1a0d05 })); hole.position.set(0, .02, .052); bal.add(hole);
-  const neck = new T.Mesh(new T.BoxGeometry(.08, .9, .06), wood2); neck.position.y = .55; bal.add(neck);
-  const headb = new T.Mesh(new T.BoxGeometry(.13, .18, .07), wood2); headb.position.y = 1.08; bal.add(headb);
-  const sm = new T.LineBasicMaterial({ color: 0xffffff });
-  for (const x of [-.02, 0, .02]) bal.add(new T.Line(new T.BufferGeometry().setFromPoints([V(x, -.2, .06), V(x, 1.0, .045)]), sm));
-  // strumming arm
-  const arm = new T.Group(); arm.position.set(.38, .85, .15); g.add(arm);
-  const a = new T.Mesh(new T.CapsuleGeometry ? new T.CapsuleGeometry(.11, .35, 6, 12) : new T.CylinderGeometry(.11, .11, .5, 12), fur); a.position.set(-.08, -.22, .12); a.rotation.z = .7; a.rotation.x = -.5; arm.add(a);
-  const paw = new T.Mesh(new T.SphereGeometry(.13, 16, 12), light); paw.position.set(-.22, -.38, .26); arm.add(paw);
-  const arm2 = new T.Mesh(new T.CapsuleGeometry ? new T.CapsuleGeometry(.11, .4, 6, 12) : new T.CylinderGeometry(.11, .11, .55, 12), fur); arm2.position.set(-.45, 1.05, .3); arm2.rotation.z = -1.1; g.add(arm2);
-  const paw2 = new T.Mesh(new T.SphereGeometry(.12, 16, 12), light); paw2.position.set(-.68, 1.2, .42); g.add(paw2);
+  const sh = new T.Shape(); sh.moveTo(-.34, -.28); sh.lineTo(.34, -.28); sh.quadraticCurveTo(.1, .05, 0, .3); sh.quadraticCurveTo(-.1, .05, -.34, -.28);
+  const tri = new T.Mesh(new T.ExtrudeGeometry(sh, { depth: .1, bevelEnabled: true, bevelSize: .015, bevelThickness: .015, bevelSegments: 1 }), wood); tri.position.z = -.05; bal.add(tri);
+  const hole = new T.Mesh(new T.CircleGeometry(.05, 16), basic({ color: 0x1a0d05 })); hole.position.set(0, -.05, .07); bal.add(hole);
+  const neck = new T.Mesh(new T.BoxGeometry(.07, .85, .05), wood2); neck.position.set(0, .7, .03); bal.add(neck);
+  const headb = new T.Mesh(new T.BoxGeometry(.12, .17, .06), wood2); headb.position.set(0, 1.18, .03); bal.add(headb);
+  const sm = new T.LineBasicMaterial({ color: 0xf5f5f5 });
+  for (const x of [-.018, 0, .018]) bal.add(new T.Line(new T.BufferGeometry().setFromPoints([V(x, -.22, .075), V(x, 1.1, .065)]), sm));
+  const at = (x, y) => { const v = V(x, y, .1).applyAxisAngle(V(0, 0, 1), .85); return v.add(bal.position); };
+  // arms as connected tubes shoulder -> elbow -> paw
+  const armTube = (pts) => new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts), 24, .11, 12, false), fur);
+  const fretPaw = at(0, .75), strumPaw = at(.02, -.05);
+  const lArm = armTube([V(-.4, 1.0, .1), V(-.62, .85, .4), fretPaw.clone().add(V(-.05, -.05, -.02))]); g.add(lArm);
+  const lp = new T.Mesh(new T.SphereGeometry(.13, 16, 12), fur); lp.position.copy(fretPaw).add(V(-.04, -.04, 0)); g.add(lp);
+  const rArm = new T.Group(); rArm.position.set(.4, 1.0, .1); g.add(rArm);
+  rArm.add(armTube([V(0, 0, 0), V(.2, -.3, .3), strumPaw.clone().sub(rArm.position).add(V(.04, .04, 0))]));
+  const rp = new T.Mesh(new T.SphereGeometry(.13, 16, 12), fur); rp.position.copy(strumPaw).sub(rArm.position).add(V(.04, .04, .02)); rArm.add(rp);
   const notes = []; for (let i = 0; i < 3; i++) { const n = sprite(0xffc845, .22, .9); g.add(n); notes.push(n); }
-  g.userData = { head, arm, notes, bal };
+  g.userData = { head, arm: rArm, notes, bal };
   return g;
 }
 {
   const g = new T.Group(); CH.add(g);
   const burger = burgerModel(); burger.position.set(3.2, .2, 0); g.add(burger);
   const crate = new T.Mesh(new T.BoxGeometry(1.5, 1.1, 1.1), [1, 1, 2, 2, 1, 1].map(k => k === 1 ? new T.MeshStandardMaterial({ map: flagTex('ru'), roughness: .7 }) : std(0x7a5a3a))); crate.position.set(-4.2, .75, 0); g.add(crate);
-  const bear = bearModel(); bear.position.set(-4.2, 1.3, 0); bear.rotation.y = .35; g.add(bear);
+  const bear = bearModel(); bear.position.set(-4.2, 1.3, 0); bear.rotation.y = .2; g.add(bear);
   const mid = V(-.5, 2.1, 0);
   const a = tube([V(-3.4, 1.2, 0), V(-2, 2.1, 0), mid], .06, flowMat(0xffc845, { dash: 5, speed: 1.2, int: 1.6 }), 60); g.add(a);
   const b = tube([mid, V(1.2, 2.1, 0), V(2.2, 1.6, 0)], .06, flowMat(0xffc845, { dash: 5, speed: 1.2, int: 1.6 }), 60); g.add(b);
@@ -910,7 +920,7 @@ function bearModel() {
     const e = ease(clamp((t - .3) / 1, 0, 1)); burger.scale.setScalar(Math.max(.001, e) * 1.25); burger.rotation.y = t * .35;
     crate.scale.setScalar(Math.max(.001, ease(clamp((t - .6) / .8, 0, 1)))); crate.rotation.y = .3;
     const be = ease(clamp((t - .9) / .8, 0, 1)), u = bear.userData; bear.scale.setScalar(Math.max(.001, be) * .85);
-    u.arm.rotation.z = .35 * Math.sin(t * 14); u.head.rotation.z = .12 * Math.sin(t * 3.5); u.head.rotation.y = .15 * Math.sin(t * 1.7); bear.position.y = 1.3 + .03 * Math.abs(Math.sin(t * 7));
+    u.arm.rotation.z = .07 * Math.sin(t * 14); u.head.rotation.z = .12 * Math.sin(t * 3.5); u.head.rotation.y = .15 * Math.sin(t * 1.7); bear.position.y = 1.3 + .03 * Math.abs(Math.sin(t * 7));
     u.notes.forEach((n, k) => { const q = (t * .6 + k / 3) % 1; n.position.set(.5 + q * .6 + .15 * Math.sin(q * 9), 1.0 + q * 1.4, .3); n.material.opacity *= (1 - q) * be; });
     a.material.uniforms.uP.value = ease(clamp((t - 1) / .8, 0, 1)); b.material.uniforms.uP.value = ease(clamp((t - 1.7) / .8, 0, 1));
     const cut = sstep(3.2, 3.5, t);
