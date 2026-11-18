@@ -639,6 +639,141 @@ const PIL = [-4.6, 0, 4.6];
   g.userData.L = L; g.userData.R = R;
 }
 
+function star(g, x, y, r) { g.beginPath(); for (let i = 0; i < 10; i++) { const a = -PI / 2 + i * PI / 5, rr = i % 2 ? r * .42 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); }
+function flagCanvas(code, lines) {
+  const c = document.createElement('canvas'); c.width = 192; c.height = 128; const g = c.getContext('2d'), w = 192, h = 128;
+  const hs = cols => cols.forEach((col, i) => { g.fillStyle = col; g.fillRect(0, i * h / cols.length, w, h / cols.length + 1); });
+  const vs = cols => cols.forEach((col, i) => { g.fillStyle = col; g.fillRect(i * w / cols.length, 0, w / cols.length + 1, h); });
+  const circ = (x, y, r, col) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); };
+  switch (code) {
+    case 'jp': hs(['#fff']); circ(96, 64, 38, '#bc002d'); break;
+    case 'ch': hs(['#d52b1e']); g.fillStyle = '#fff'; g.fillRect(84, 34, 24, 60); g.fillRect(66, 52, 60, 24); break;
+    case 'kr': hs(['#fff']); circ(96, 64, 32, '#0047a0'); g.fillStyle = '#cd2e3a'; g.beginPath(); g.arc(96, 64, 32, PI, 0); g.fill(); circ(80, 64, 16, '#cd2e3a'); circ(112, 64, 16, '#0047a0'); break;
+    case 'de': hs(['#111', '#dd0000', '#ffce00']); break;
+    case 'us': for (let i = 0; i < 13; i++) { g.fillStyle = i % 2 ? '#fff' : '#b22234'; g.fillRect(0, i * h / 13, w, h / 13 + 1); } g.fillStyle = '#3c3b6e'; g.fillRect(0, 0, 80, 69); for (let i = 0; i < 5; i++) for (let j = 0; j < 6; j++) circ(8 + j * 13, 8 + i * 13, 2.2, '#fff'); break;
+    case 'cn': hs(['#de2910']); g.fillStyle = '#ffde00'; star(g, 34, 32, 16); [[64, 14], [76, 26], [76, 44], [64, 56]].forEach(([x, y]) => star(g, x, y, 5)); break;
+    case 'ru': hs(['#fff', '#0039a6', '#d52b1e']); break;
+    case 'kz': hs(['#00afca']); circ(104, 56, 22, '#fec50c'); g.fillStyle = '#fec50c'; for (let i = 0; i < 24; i++) { const a = i / 24 * PI * 2; g.beginPath(); g.moveTo(104 + Math.cos(a) * 26, 56 + Math.sin(a) * 26); g.lineTo(104 + Math.cos(a + .1) * 34, 56 + Math.sin(a + .1) * 34); g.lineTo(104 + Math.cos(a + .2) * 26, 56 + Math.sin(a + .2) * 26); g.fill(); } g.fillRect(12, 8, 10, 112); g.fillRect(70, 96, 70, 6); break;
+    case 'ml': vs(['#14b53a', '#fcd116', '#ce1126']); break;
+    case 'gn': vs(['#ce1126', '#fcd116', '#009460']); break;
+    case 'bf': hs(['#ef2b2d', '#009e49']); g.fillStyle = '#fcd116'; star(g, 96, 64, 22); break;
+    case 'ae': hs(['#00732f', '#fff', '#111']); g.fillStyle = '#ff0000'; g.fillRect(0, 0, 50, 128); break;
+    case 'sg': hs(['#ef3340', '#fff']); circ(40, 32, 20, '#fff'); circ(48, 32, 20, '#ef3340'); g.fillStyle = '#fff'; [[62, 20], [72, 28], [68, 40], [56, 40], [52, 28]].forEach(([x, y]) => star(g, x, y, 4)); break;
+    case 'no': hs(['#ba0c2f']); g.fillStyle = '#fff'; g.fillRect(52, 0, 32, 128); g.fillRect(0, 48, 192, 32); g.fillStyle = '#00205b'; g.fillRect(60, 0, 16, 128); g.fillRect(0, 56, 192, 16); break;
+    case 'fr': vs(['#0055a4', '#fff', '#ef4135']); break;
+    case 'it': vs(['#009246', '#fff', '#ce2b37']); break;
+    case 'br': hs(['#009c3b']); g.fillStyle = '#ffdf00'; g.beginPath(); g.moveTo(96, 14); g.lineTo(176, 64); g.lineTo(96, 114); g.lineTo(16, 64); g.fill(); circ(96, 64, 26, '#002776'); break;
+    case 'in': hs(['#ff9933', '#fff', '#138808']); circ(96, 64, 14, '#000080'); circ(96, 64, 11, '#fff'); break;
+    case 'sa': hs(['#006c35']); g.fillStyle = '#fff'; g.fillRect(50, 80, 92, 6); g.font = 'bold 30px serif'; g.fillText('﷽', 70, 66); break;
+    case 'uz': hs(['#0099b5', '#fff', '#1eb53a']); g.fillStyle = '#ce1126'; g.fillRect(0, 41, 192, 4); g.fillRect(0, 83, 192, 4); circ(30, 20, 12, '#fff'); circ(35, 20, 12, '#0099b5'); break;
+    case 'ng': vs(['#008751', '#fff', '#008751']); break;
+    case 'cd': hs(['#007fff']); g.strokeStyle = '#f7d618'; g.lineWidth = 30; g.beginPath(); g.moveTo(0, 128); g.lineTo(192, 0); g.stroke(); g.strokeStyle = '#ce1021'; g.lineWidth = 18; g.stroke(); g.fillStyle = '#f7d618'; star(g, 30, 28, 18); break;
+    case 'gb': hs(['#012169']); g.strokeStyle = '#fff'; g.lineWidth = 22; g.beginPath(); g.moveTo(0, 0); g.lineTo(192, 128); g.moveTo(192, 0); g.lineTo(0, 128); g.stroke(); g.fillStyle = '#fff'; g.fillRect(80, 0, 32, 128); g.fillRect(0, 48, 192, 32); g.fillStyle = '#c8102e'; g.fillRect(86, 0, 20, 128); g.fillRect(0, 54, 192, 20); break;
+    case 'mx': vs(['#006847', '#fff', '#ce1126']); circ(96, 64, 12, '#8b5a2b'); break;
+    case 'vn': hs(['#da251d']); g.fillStyle = '#ff0'; star(g, 96, 64, 30); break;
+    case 'tr': hs(['#e30a17']); circ(80, 64, 30, '#fff'); circ(88, 64, 24, '#e30a17'); g.fillStyle = '#fff'; star(g, 122, 64, 12); break;
+    case 'id': hs(['#ce1126', '#fff']); break;
+    case 'eg': hs(['#ce1126', '#fff', '#111']); circ(96, 64, 9, '#c09300'); break;
+    case 'th': hs(['#a51931', '#f4f5f8', '#2d2a4a', '#2d2a4a', '#f4f5f8', '#a51931']); break;
+    case 'ar': hs(['#74acdf', '#fff', '#74acdf']); circ(96, 64, 10, '#f6b40e'); break;
+    case 'pl': hs(['#fff', '#dc143c']); break;
+    case 'ua': hs(['#0057b7', '#ffd700']); break;
+  }
+  if (lines) { for (let y = 0; y < h; y += 5) { g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(0, y, w, 1.4); g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(0, y + 1.5, w, 1); } }
+  return c;
+}
+const FLAG = {};
+const flagTex = (code, lines) => FLAG[code + (lines ? 'L' : '')] || (FLAG[code + (lines ? 'L' : '')] = new T.CanvasTexture(flagCanvas(code, lines)));
+const FLAGSQ = {};
+function flagTexSq(code) {
+  if (FLAGSQ[code]) return FLAGSQ[code];
+  const c = document.createElement('canvas'); c.width = c.height = 128; c.getContext('2d').drawImage(flagCanvas(code), -32, 0, 192, 128);
+  return (FLAGSQ[code] = new T.CanvasTexture(c));
+}
+const basic = (o) => new T.MeshBasicMaterial(Object.assign({ transparent: true }, o));
+
+// --- slide: McDonald's story (burger + broken supply line)
+function burgerModel() {
+  const g = new T.Group();
+  const bun = std(0xd9913e, 0, 0, { roughness: .55 });
+  const top = new T.Mesh(new T.SphereGeometry(1, 40, 20, 0, PI * 2, 0, PI / 2), bun); top.scale.set(1, .55, 1); top.position.y = .95; g.add(top);
+  const seed = std(0xfff3d6); for (let i = 0; i < 26; i++) { const a = Math.random() * PI * 2, r = Math.random() * .8; const s = new T.Mesh(new T.SphereGeometry(.05, 8, 6), seed); s.scale.set(1, .5, 1.6); const yy = .95 + .55 * Math.sqrt(Math.max(0, 1 - r * r)); s.position.set(Math.cos(a) * r, yy, Math.sin(a) * r); s.rotation.y = a; g.add(s); }
+  const let_ = new T.Mesh(new T.CylinderGeometry(1.08, 1.08, .08, 28), std(0x4caf50, 0, 0, { roughness: .6 })); let_.position.y = .9; g.add(let_);
+  const ch = new T.Mesh(new T.BoxGeometry(1.75, .06, 1.75), std(0xffc93a, 0, 0, { roughness: .4 })); ch.position.y = .82; ch.rotation.y = .4; g.add(ch);
+  const pat = new T.Mesh(new T.CylinderGeometry(1, 1, .3, 32), std(0x4a2a17, 0, 0, { roughness: .8 })); pat.position.y = .62; g.add(pat);
+  const bot = new T.Mesh(new T.CylinderGeometry(.98, .9, .42, 32), bun); bot.position.y = .26; g.add(bot);
+  return g;
+}
+
+function bearModel() {
+  const g = new T.Group();
+  const fur = std(0x7a4a26, 0, 0, { roughness: .9 }), light = std(0xd2a06a, 0, 0, { roughness: .9 }), dark = std(0x1a1010, 0, 0, { roughness: .4 });
+  const hatM = std(0x2b2018, 0, 0, { roughness: 1 }), hatF = std(0x5a4636, 0, 0, { roughness: 1 });
+  const body = new T.Mesh(new T.SphereGeometry(.55, 32, 24), fur); body.scale.set(1, 1.1, .85); body.position.y = .62; g.add(body);
+  const belly = new T.Mesh(new T.SphereGeometry(.4, 24, 16), light); belly.scale.set(1, 1.1, .5); belly.position.set(0, .55, .32); g.add(belly);
+  for (const x of [-.3, .3]) {
+    const leg = new T.Mesh(new T.SphereGeometry(.2, 16, 12), fur); leg.scale.set(1, .75, 1.4); leg.position.set(x, .14, .32); g.add(leg);
+    const pad = new T.Mesh(new T.CircleGeometry(.11, 16), light); pad.position.set(x, .14, .6); g.add(pad);
+  }
+  const head = new T.Group(); head.position.y = 1.4; g.add(head);
+  head.add(new T.Mesh(new T.SphereGeometry(.38, 32, 24), fur));
+  const snout = new T.Mesh(new T.SphereGeometry(.17, 20, 16), light); snout.scale.set(1.1, .8, 1); snout.position.set(0, -.08, .32); head.add(snout);
+  const nose = new T.Mesh(new T.SphereGeometry(.065, 12, 10), dark); nose.scale.set(1.3, 1, 1); nose.position.set(0, -.03, .48); head.add(nose);
+  for (const x of [-.13, .13]) { const e = new T.Mesh(new T.SphereGeometry(.045, 12, 10), dark); e.position.set(x, .07, .34); head.add(e); }
+  // ushanka
+  const cap = new T.Mesh(new T.SphereGeometry(.41, 32, 16, 0, PI * 2, 0, PI / 2), hatM); cap.scale.y = .75; cap.position.y = .1; head.add(cap);
+  const band = new T.Mesh(new T.TorusGeometry(.4, .08, 12, 40), hatF); band.rotation.x = PI / 2; band.position.y = .12; head.add(band);
+  for (const x of [-.38, .38]) { const f = new T.Mesh(new T.BoxGeometry(.1, .3, .26), hatF); f.position.set(x, -.06, 0); head.add(f); }
+  const star = new T.Mesh(new T.CircleGeometry(.06, 5), basic({ color: 0xff3b47 })); star.position.set(0, .22, .38); head.add(star);
+  // balalaika held across the chest, neck up to the left
+  const bal = new T.Group(); bal.position.set(.18, .5, .58); bal.rotation.z = .85; g.add(bal);
+  const wood = std(0xd99a4e, 0, 0, { roughness: .5 }), wood2 = std(0x6b3a1a, 0, 0, { roughness: .6 });
+  const sh = new T.Shape(); sh.moveTo(-.34, -.28); sh.lineTo(.34, -.28); sh.quadraticCurveTo(.1, .05, 0, .3); sh.quadraticCurveTo(-.1, .05, -.34, -.28);
+  const tri = new T.Mesh(new T.ExtrudeGeometry(sh, { depth: .1, bevelEnabled: true, bevelSize: .015, bevelThickness: .015, bevelSegments: 1 }), wood); tri.position.z = -.05; bal.add(tri);
+  const hole = new T.Mesh(new T.CircleGeometry(.05, 16), basic({ color: 0x1a0d05 })); hole.position.set(0, -.05, .07); bal.add(hole);
+  const neck = new T.Mesh(new T.BoxGeometry(.07, .85, .05), wood2); neck.position.set(0, .7, .03); bal.add(neck);
+  const headb = new T.Mesh(new T.BoxGeometry(.12, .17, .06), wood2); headb.position.set(0, 1.18, .03); bal.add(headb);
+  const sm = new T.LineBasicMaterial({ color: 0xf5f5f5 });
+  for (const x of [-.018, 0, .018]) bal.add(new T.Line(new T.BufferGeometry().setFromPoints([V(x, -.22, .075), V(x, 1.1, .065)]), sm));
+  const at = (x, y) => { const v = V(x, y, .1).applyAxisAngle(V(0, 0, 1), .85); return v.add(bal.position); };
+  // arms as connected tubes shoulder -> elbow -> paw
+  const armTube = (pts) => new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts), 24, .11, 12, false), fur);
+  const fretPaw = at(0, .75), strumPaw = at(.02, -.05);
+  const lArm = armTube([V(-.4, 1.0, .1), V(-.62, .85, .4), fretPaw.clone().add(V(-.05, -.05, -.02))]); g.add(lArm);
+  const lp = new T.Mesh(new T.SphereGeometry(.13, 16, 12), fur); lp.position.copy(fretPaw).add(V(-.04, -.04, 0)); g.add(lp);
+  const rArm = new T.Group(); rArm.position.set(.4, 1.0, .1); g.add(rArm);
+  rArm.add(armTube([V(0, 0, 0), V(.2, -.3, .3), strumPaw.clone().sub(rArm.position).add(V(.04, .04, 0))]));
+  const rp = new T.Mesh(new T.SphereGeometry(.13, 16, 12), fur); rp.position.copy(strumPaw).sub(rArm.position).add(V(.04, .04, .02)); rArm.add(rp);
+  const notes = []; for (let i = 0; i < 3; i++) { const n = sprite(0xffc845, .22, .9); g.add(n); notes.push(n); }
+  g.userData = { head, arm: rArm, notes, bal };
+  return g;
+}
+{
+  const g = new T.Group(); CH.add(g);
+  const burger = burgerModel(); burger.position.set(3.2, .2, 0); g.add(burger);
+  const crate = new T.Mesh(new T.BoxGeometry(1.5, 1.1, 1.1), [1, 1, 2, 2, 1, 1].map(k => k === 1 ? new T.MeshStandardMaterial({ map: flagTex('ru'), roughness: .7 }) : std(0x7a5a3a))); crate.position.set(-4.2, .75, 0); g.add(crate);
+  const bear = bearModel(); bear.position.set(-4.2, 1.3, 0); bear.rotation.y = .2; g.add(bear);
+  const mid = V(-.5, 2.1, 0);
+  const a = tube([V(-3.4, 1.2, 0), V(-2, 2.1, 0), mid], .06, flowMat(0xffc845, { dash: 5, speed: 1.2, int: 1.6 }), 60); g.add(a);
+  const b = tube([mid, V(1.2, 2.1, 0), V(2.2, 1.6, 0)], .06, flowMat(0xffc845, { dash: 5, speed: 1.2, int: 1.6 }), 60); g.add(b);
+  const xg = new T.Group(); xg.position.copy(mid); g.add(xg);
+  const red = std(0xff3b47, 0xff2030, .8);
+  const x1 = new T.Mesh(new T.BoxGeometry(1.1, .2, .2), red); x1.rotation.z = PI / 4; const x2 = x1.clone(); x2.rotation.z = -PI / 4; xg.add(x1, x2);
+  const it = reg('burger', g);
+  it.update = t => {
+    const e = ease(clamp((t - .3) / 1, 0, 1)); burger.scale.setScalar(Math.max(.001, e) * 1.25); burger.rotation.y = t * .35;
+    crate.scale.setScalar(Math.max(.001, ease(clamp((t - .6) / .8, 0, 1)))); crate.rotation.y = .3;
+    const be = ease(clamp((t - .9) / .8, 0, 1)), u = bear.userData; bear.scale.setScalar(Math.max(.001, be) * .85);
+    u.arm.rotation.z = .07 * Math.sin(t * 14); u.head.rotation.z = .12 * Math.sin(t * 3.5); u.head.rotation.y = .15 * Math.sin(t * 1.7); bear.position.y = 1.3 + .03 * Math.abs(Math.sin(t * 7));
+    u.notes.forEach((n, k) => { const q = (t * .6 + k / 3) % 1; n.position.set(.5 + q * .6 + .15 * Math.sin(q * 9), 1.0 + q * 1.4, .3); n.material.opacity *= (1 - q) * be; });
+    a.material.uniforms.uP.value = ease(clamp((t - 1) / .8, 0, 1)); b.material.uniforms.uP.value = ease(clamp((t - 1.7) / .8, 0, 1));
+    const cut = sstep(3.2, 3.5, t);
+    xg.scale.setScalar(Math.max(.001, cut * (1 + .15 * Math.sin(t * 6)))); xg.rotation.z = (1 - cut) * PI;
+    b.material.uniforms.uO.value *= 1 - .9 * cut;
+  };
+}
+
+
 // ------------------------------------------------------------------ labels
 const LBL = {}, labelsEl = document.getElementById('labels');
 function lbl(key, world, pos, text, cls, o = {}) {
@@ -691,6 +826,9 @@ lbl('c_bait', 'chart', V(1.4, .5, .8), 'Baiterek tower, Astana', 'cap');
 lbl('c_cost', 'chart', () => { const L = CH.children.find(o => o.userData.L).userData.L; return L.position.clone().add(V(0, 1.9, 0)); }, 'COSTS', 'redcap', { dyn: true });
 lbl('c_ben', 'chart', () => { const R = CH.children.find(o => o.userData.R).userData.R; return R.position.clone().add(V(0, 1.9, 0)); }, 'BENEFITS', 'cap', { dyn: true });
 
+lbl('bg_r', 'chart', V(-4.2, -.05, .7), 'Beef patties from Russia', 'node');
+lbl('bg_b', 'chart', V(3.2, -.05, 1.3), 'McDonald’s Kazakhstan<br>2016 → Jan 2023', 'node');
+lbl('bg_x', 'chart', V(-.5, 3.1, 0), 'sanctions · supply cut', 'redcap');
 const tmpV = V();
 function updateLabels() {
   const w = innerWidth, h = innerHeight;
@@ -715,6 +853,7 @@ const box = (st, inner) => `<div class="box" style="${st}">${inner}</div>`;
 const gcam = (lon, lat, dist, shift = 0, o = {}) => Object.assign({ p: ll2v(lon, lat, dist), t: o.t || V(0, 0, 0), shift }, o);
 const mcam = (lon, lat, off, shift, o = {}) => { const t = mp(lon, lat, o.ty || 0); return Object.assign({ p: t.clone().add(off), t, shift }, o); };
 
+const PAPER_CAM = (p, t, shift = 0, orbit = 0) => ({ p, t, shift, orbit });
 const SLIDES = [
   { // 1 title
     shade: 'shadeB', world: 'globe', cam: gcam(66, 26, 3.25, .2, { orbit: .018 }), gu: { kz: 1, rus: 0, chn: 0 }, show: [], labels: [],
@@ -727,14 +866,6 @@ const SLIDES = [
     html: box('left:4vw;top:11vh;width:31vw', kick('Where we are') + ttl('The heart of Eurasia') + stat('9th', 'largest country on Earth and the largest landlocked one', 'gold', .9)
       + stat('20.6 M', 'people (Aug 2026): a small population on a huge land', 'white', 1.3) + stat('1991', 'independence from the USSR · new constitution in force June 30, 2026', 'teal', 1.7, true))
       + src('Sources: Bureau of National Statistics (2026a, 2026b); Reuters (2026a).')
-  },
-  { // 3 the land / Aral
-    world: 'map', cam: mcam(61.5, 46.5, V(2.6, 9.4, 12), .24, { orbit: .008 }), mode: 'land', show: [], labels: ['m_aral', 'm_caspian', 'm_rus', 'm_uzb', 'm_shipcap'],
-    html: box('left:4vw;top:11vh;width:33vw', kick('The land') + ttl('Steppe, desert and a vanished sea')
-      + para('<b>Steppe, desert and semi desert</b> cover most of the country; mountains rise in the east and south east along China and Kyrgyzstan.', 1)
-      + para('<b>A Caspian coast, but no ocean:</b> every export has to cross someone else’s territory.', 1.4)
-      + para('<b>The Aral Sea</b> shrank after Soviet era water diversion, a reminder of what happens when one resource is over used.', 1.8))
-      + src('Source: Part 1 country overview (Bureau of National Statistics, 2026; Reuters, 2026a).')
   },
   { // 4 economy
     world: 'map', cam: mcam(67.5, 46, V(0, 19, 17.5), .2, { orbit: .006 }), mode: 'econ', show: [], labels: ['m_astana', 'm_almaty', 'm_shymkent', 'm_atyrau', 'm_karaganda'],
@@ -749,14 +880,29 @@ const SLIDES = [
     html: box('left:4vw;top:11vh;width:31vw', kick('Engine #1') + ttl('Oil pays the bills') + stat('50.5%', 'of all merchandise exports were crude oil and oil products (2025)', 'gold', .9)
       + stat('+13.5%', 'oil output in 2025 after the Tengiz expansion, the main driver of record growth', 'white', 1.3)
       + stat('$79.0B', 'exports (down 3.2%) vs $64.8B imports (+7.4%). Top buyers: Italy, China, Russia', 'white', 1.7))
+      + `<div class="lookup better a" style="--d:3.2s"><img src="img/lookup.jpg" alt=""><div class="lcap">Kazakhstan watching the oil price</div></div>`
       + src('Sources: Bureau of National Statistics (2026a); World Bank (2026a).')
   },
-  { // 6 trade
-    shade: 'shadeB', world: 'globe', cam: gcam(64, 34, 3.0, 0, { t: V(0, -.2, 0), orbit: .01 }), gu: { kz: 1, rus: 0, chn: 0 }, show: ['trade'], labels: ['g_italy', 'g_china', 'g_russia'],
-    html: box('left:4vw;bottom:8vh;right:4vw', kick('Who we trade with') + `<div style="display:grid;grid-template-columns:1fr 1.5fr 1.3fr;gap:3vw">`
-      + stat('$143.9B', 'total goods trade, 2025 (+1.3%)', 'white', .9) + stat('Italy · China · Russia', 'top export markets; Russia and China supply most imports', 'gold sm', 1.3, true)
-      + stat('57.2%', 'of GDP is trade (2024), down from 68.3% in 2022', 'teal', 1.7) + `</div>`)
-      + src('Sources: Bureau of National Statistics (2026a); World Bank via Lloyds Bank Trade (2026). Arcs are schematic.')
+  { // McDonald's
+    shade: 'shadeT', world: 'chart', cam: PAPER_CAM(V(-.4, 2.6, 10.5), V(-.4, 1.5, 0), 0, 0), show: ['burger'], labels: ['bg_r', 'bg_b', 'bg_x'],
+    html: box('left:4vw;top:7vh;width:60vw', kick('A small story') + `<br>` + ttl('The McDonald’s lesson'))
+      + box('right:4vw;top:9vh;width:26vw', `<div class="panel a" style="--d:3.8s">` + para('The beef came from Russia. After the sanctions, <b>no local supplier</b> could replace it, so the brand left.', 3.8, 'margin:0;max-width:none') + `</div>`)
+      + `<div class="meme2 a" style="--d:4.4s"><svg viewBox="0 0 200 170" class="sadb">
+  <g class="body">
+    <path d="M30 78 Q30 22 100 20 Q170 22 170 78 Z" class="bt"/>
+    <ellipse cx="70" cy="40" rx="5" ry="2.5" class="sd"/><ellipse cx="100" cy="32" rx="5" ry="2.5" class="sd"/><ellipse cx="128" cy="42" rx="5" ry="2.5" class="sd"/><ellipse cx="88" cy="55" rx="5" ry="2.5" class="sd"/><ellipse cx="118" cy="58" rx="5" ry="2.5" class="sd"/>
+    <path d="M24 80 Q40 92 56 82 Q72 94 88 82 Q104 94 120 82 Q136 94 152 82 Q168 92 176 80 L176 86 L24 86 Z" class="lt"/>
+    <path d="M26 86 L174 86 L160 98 L40 98 Z" class="ch"/>
+    <rect x="34" y="96" width="132" height="22" rx="10" class="pt"/>
+    <path d="M36 118 L164 118 Q164 142 100 144 Q36 142 36 118 Z" class="bb"/>
+    <path d="M72 62 Q80 56 88 62" class="brow"/><path d="M112 62 Q120 56 128 62" class="brow"/>
+    <circle cx="80" cy="70" r="5" class="eye"/><circle cx="120" cy="70" r="5" class="eye"/>
+    <path d="M86 112 Q100 102 114 112" class="mouth"/>
+    <path d="M80 76 q-3 8 0 12 q3 -4 0 -12" class="tear t1"/><path d="M120 76 q-3 8 0 12 q3 -4 0 -12" class="tear t2"/>
+    <path d="M30 106 L8 92" class="arm"/><path d="M170 106 L192 92" class="arm"/>
+    <path d="M78 144 L74 162" class="arm"/><path d="M122 144 L126 162" class="arm"/>
+  </g></svg><div class="mcap"><div class="mt">POV: your only beef supplier gets sanctioned</div><div class="ms">“guys… we messed up”</div></div></div>`
+      + src('Source: Reuters (2023, January 4), McDonald’s set to exit Kazakhstan over Russian supply curbs.')
   },
   { // 7 inflation
     shade: 'shadeT', world: 'chart', cam: { p: V(-2.2, 4.6, 15.5), t: V(-1.4, 2.5, 0), shift: -.2, orbit: .01 }, show: ['bars'], labels: ['b_v0', 'b_v1', 'b_v2', 'b_v3', 'b_v4', 'b_y0', 'b_y1', 'b_y2', 'b_y3', 'b_y4', 'b_t'],
@@ -764,6 +910,7 @@ const SLIDES = [
       + box('right:4vw;top:30vh;width:27vw', `<div class="small a" style="--d:.6s;margin-bottom:2vh;letter-spacing:.2em">ANNUAL INFLATION, %</div>`
       + stat('18% → 15.75%', 'National Bank base rate, early 2026 → Oct 2026. Loans stay expensive.', 'gold', 3.2, true)
       + stat('2% drop', 'in real wages, Q3 2025: prices rose faster than paychecks', 'red', 3.7))
+      + `<div class="lookup infl a" style="--d:4.6s"><img src="img/worse.jpg" alt=""><div class="lcap">Everyone after inflation hits 12.3%</div></div>`
       + src('Sources: World Bank (2026a); Bureau of National Statistics (2026c); National Bank of Kazakhstan (2026); Regxplora (2026).')
   },
   { // 8 chain
@@ -774,14 +921,6 @@ const SLIDES = [
         + para('<b>Rates fight inflation, not the currency:</b> the National Bank targets prices, so when the tenge falls, it must keep loans expensive for everyone.', 5.6, 'max-width:none'))
       + box('left:0;right:0;top:25vh;text-align:center', `<div class="a" style="--d:6.4s;font-size:1.7vw;font-weight:700;color:var(--gold);text-shadow:0 0 30px rgba(255,200,69,.5)">Kazakhstan is not short of money. It is short of diversity.</div>`)
       + src('Sources: National Bank of Kazakhstan (n.d.); Regxplora (2026).')
-  },
-  { // 9 paradox
-    shade: 'shadeR', world: 'globe', cam: gcam(40, 30, 2.95, -.2, { orbit: -.008 }), gu: { kz: 1, rus: 0, chn: 0 }, show: ['paradox'], labels: ['g_profit'],
-    html: box('right:4vw;top:11vh;width:32vw', kick('The paradox') + ttl('Selling more than we buy, and still borrowing', .3, 'font-size:2.6vw')
-      + stat('$13.1B', 'current account deficit in 2025, despite a goods trade surplus', 'red', .9)
-      + stat('$173.4B', 'stock of foreign direct investment: owners abroad collect the oil and mining profits', 'white', 1.3)
-      + stat('+$2.4B', 'surplus in H1 2026: the account swings from borrower to lender within a year', 'teal', 1.7))
-      + `<div class="src a" style="--d:2.4s;left:auto;right:4vw">Sources: Government of Kazakhstan (2026); U.S. Department of State (2024).</div>`
   },
   { // 10 proposal
     shade: 'shadeT', world: 'chart', cam: { p: V(0, 3.9, 13.5), t: V(0, 1.7, 0), shift: 0, orbit: .008 }, show: ['pillars'], labels: ['p0', 'p1', 'p2'],
@@ -811,17 +950,6 @@ const SLIDES = [
       + para('More factories mean jobs outside the oil regions and exports that don’t move with the price of a barrel.', 2.4))
       + src('Sources: Bureau of National Statistics (2026a, 2026b).')
   },
-  { // 14 trade offs
-    shade: 'shadeT', world: 'chart', cam: { p: V(0, 3.4, 14), t: V(0, 1.9, 0), shift: 0, orbit: .01 }, show: ['balance'], labels: ['c_cost', 'c_ben'],
-    html: box('left:4vw;top:8vh;width:80vw', kick('Defending the plan') + ttl('Costs, risks and how we’ll know it works', .3, 'font-size:3vw'))
-      + box('left:3vw;bottom:9vh;width:25vw', `<div class="panel a" style="--d:.9s;border-color:rgba(255,90,95,.35)"><div class="kicker" style="color:var(--red)">Trade offs</div><ul class="list">`
-        + '<li>Less government spending today under the fiscal rule.</li><li>The corridor needs big upfront investment in rail and ports.</li><li>Transit depends on stable relations with Russia and China.</li>'
-        + '<li><b style="color:#fff">But doing nothing = another inflation shock every time oil moves.</b></li></ul></div>')
-      + box('right:3vw;bottom:9vh;width:25vw', `<div class="panel a" style="--d:2.4s;border-color:rgba(53,208,230,.35)"><div class="kicker" style="color:var(--teal)">How we measure success</div>`
-        + stat('5%', 'inflation back at the National Bank target (now 9.3%)', 'teal', 2.8) + stat('< 40%', 'oil’s share of exports (now 50.5%)', 'gold', 3.2, true)
-        + stat('↑ non oil', 'manufacturing and transit revenue growing every year', 'white', 3.6, true) + `</div>`)
-      + `<div class="src a" style="--d:2.4s;bottom:3vh">Targets are my proposal; current values from Parts 2 and 3.</div>`
-  },
   { // 15 closing
     shade: 'shadeB', world: 'globe', cam: gcam(64, 24, 4.1, .2, { t: V(0, -.32, 0), orbit: .025 }), gu: { kz: 1, rus: 0, chn: 0 }, show: ['close'], labels: [],
     html: box('left:4vw;right:4vw;bottom:10vh', kick('From a pipeline to a crossroads', .3) + ttl('Save the windfall. Build the corridor. Add value at home.', .6, 'font-size:2.9vw;margin-bottom:2.4vh')
@@ -839,6 +967,7 @@ const SLIDES = [
       'Lloyds Bank Trade. (2026). Foreign trade figures of Kazakhstan. lloydsbanktrade.com',
       'National Bank of Kazakhstan. (2026, September 4). The base rate was lowered to 16.25%. nationalbank.kz; (n.d.) Frequently asked questions.',
       'Regxplora. (2026). Monetary policy tracker: Kazakhstan.',
+      'Reuters. (2023, January 4). McDonald’s set to exit Kazakhstan over Russian supply curbs.',
       'Reuters. (2026a, June 30). New Kazakhstan constitution takes effect as political transition gathers pace.',
       'U.S. Department of State. (2024). 2024 investment climate statements: Kazakhstan.',
       'World Bank. (2026a). Kazakhstan: Economic overview; (2026b) World Development Indicators: Kazakhstan.'
@@ -867,7 +996,6 @@ const SLIDES = [
   <div class="mcap"><div class="mt">Me after zero questions</div><div class="ms">beshbarmak.exe has started dancing</div></div></div>`
   }
 ];
-
 // build slide DOM
 const ui = document.getElementById('ui');
 SLIDES.forEach(s => {
@@ -1067,6 +1195,11 @@ function frame() {
 const m0 = location.hash.match(/^#(\d+)/);
 setMode('land'); snapHex();
 if (m0) goTo(parseInt(m0[1], 10) - 1, { instant: true, force: true }); else goTo(0, { intro: true });
+(function warm() {
+  const vis = []; for (const sc of Object.values(W)) sc.traverse(o => { vis.push([o, o.visible]); o.visible = true; o.traverse(x => { if (x.material) (Array.isArray(x.material) ? x.material : [x.material]).forEach(m => { if (m.map) renderer.initTexture(m.map); }); }); });
+  for (const sc of Object.values(W)) { if (sc.background && sc.background.isTexture) renderer.initTexture(sc.background); renderer.compile(sc, camera); }
+  vis.forEach(([o, v]) => o.visible = v);
+})();
 frame();
 setTimeout(() => hint.classList.add('off'), 9000);
 window.__goTo = goTo;

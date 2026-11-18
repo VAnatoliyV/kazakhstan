@@ -122,3 +122,24 @@ body.idle #fs, :fullscreen #fs { opacity: 0; pointer-events: none; }
 .mcap .ms { font-size: 1vw; color: var(--gold); font-style: italic; margin-top: .6vh; letter-spacing: .03em; }
 #qtoast { position: fixed; left: 2vw; bottom: 2.4vh; font-size: .8vw; color: rgba(255,255,255,.6); background: rgba(0,0,0,.5); padding: .4vh .8vw; border-radius: 999px; opacity: 0; transition: opacity .5s; z-index: 20; pointer-events: none; }
 #qtoast.on { opacity: 1; }
+
+.meme2 { position: absolute; right: 8vw; bottom: 3.5vh; display: flex; align-items: center; gap: 1.2vw; background: rgba(10,7,22,.55); padding: 1vh 1.6vw; border-radius: 1vw; box-shadow: .4vw .5vw 0 rgba(0,0,0,.3); }
+.sadb { width: 7vw; height: auto; overflow: visible; }
+.sadb .bt { fill: #d9913e; stroke: #8a5520; stroke-width: 2; } .sadb .sd { fill: #fff3d6; }
+.sadb .lt { fill: #4caf50; } .sadb .ch { fill: #ffc93a; } .sadb .pt { fill: #4a2a17; } .sadb .bb { fill: #d08a3a; stroke: #8a5520; stroke-width: 2; }
+.sadb .eye { fill: #111; } .sadb path.brow, .sadb path.mouth { fill: none; stroke: #2a160a; stroke-width: 3.5; stroke-linecap: round; }
+.sadb path.mouth { stroke: #fff; } .sadb path.arm { fill: none; stroke: #f2f5f7; stroke-width: 5; stroke-linecap: round; }
+.sadb .tear { fill: #7fd3ff; } .sadb .t1 { animation: drip 1.4s ease-in infinite; } .sadb .t2 { animation: drip 1.4s ease-in infinite .7s; }
+.sadb .body { transform-origin: 100px 150px; animation: sob .35s ease-in-out infinite alternate; }
+@keyframes drip { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(26px); opacity: 0; } }
+@keyframes sob { from { transform: rotate(-2deg) translateY(0); } to { transform: rotate(2deg) translateY(-2px); } }
+.meme2 .mt { font-size: 1.35vw; } .meme2 .ms { font-size: 1.05vw; }
+.lookup { position: absolute; left: 2.5vw; bottom: 13vh; width: 15vw; background: #0f0b1c; padding: .6vw .6vw 1vh; border-radius: .5vw; transform: rotate(-2deg); box-shadow: .45vw .55vw 0 rgba(0,0,0,.38); }
+.slide.on .lookup.a { transform: rotate(-2deg); }
+.lookup img { width: 100%; display: block; border-radius: .3vw; }
+.lookup .lcap { font-size: 1vw; font-weight: 800; text-align: center; margin-top: .8vh; line-height: 1.25; }
+.lookup.better { left: auto; right: 6vw; bottom: 10vh; width: 19vw; transform: rotate(2deg); }
+.slide.on .lookup.better.a { transform: rotate(2deg); }
+.lbl.node .t br { display: block; }
+.lookup.infl { left: auto; right: 5vw; bottom: 8vh; width: 14vw; transform: rotate(2deg); }
+.slide.on .lookup.infl.a { transform: rotate(2deg); }
