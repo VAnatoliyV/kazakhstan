@@ -225,7 +225,7 @@ const NORTH = [[87.6, 43.8], [82.5, 45.2], [76.9, 50.4], CITY.astana, [69.1, 54.
 const corrRail = tube(pathPts(RAIL_E), .005, flowMat(0xffc845, { dash: 30, speed: .9, int: 1.6 }));
 const corrSea = tube(pathPts(SEA, 1.004), .005, flowMat(0x35d0e6, { dash: 12, speed: .9, base: .15, int: 1.8 }));
 const corrW = tube(pathPts(RAIL_W), .005, flowMat(0xffc845, { dash: 30, speed: .9, int: 1.6 }));
-const corrN = tube(pathPts(NORTH), .0032, flowMat(0xff5a5f, { dash: 40, speed: .3, int: .55, base: .5 }));
+const corrN = tube(pathPts(NORTH), .0032, flowMat(0xff5a5f, { dash: 40, speed: .3, int: 1.0, base: .55 }));
 [corrRail, corrSea, corrW, corrN].forEach(m => globe.add(m));
 growTube('corridor', corrN, .2, 1.4);
 growTube('corridor', corrRail, .9, 2.4);
@@ -1012,10 +1012,92 @@ lbl('b_t', 'chart', V(-6.6, 5 * BK + .25, .7), 'TARGET 5%', 'cap');
   lbl('n' + i, 'chart', NODES[i].clone().add(V(0, -1.2, 0)), t, 'node' + (i === 3 ? ' red' : '')));
 [['1', 'Save the windfall', 'A fiscal rule that parks oil money in the National Fund'], ['2', 'Build the corridor', 'Make Kazakhstan the land bridge between China and Europe'], ['3', 'Add value at home', 'Process our metals here instead of exporting them raw']]
   .forEach(([n, h, b], i) => lbl('p' + i, 'chart', V(PIL[i], -.15, 1.2), `<div class="card"><div class="h"><i>${n}</i>${h}</div><div class="b">${b}</div></div>`, 'pcard'));
+{
+  const L = LBL.p1; L.el.classList.add('clickable');
+  L.el.querySelector('.card').insertAdjacentHTML('beforeend', '<div class="maphint">🗺️ Click to see the map</div>');
+  L.el.addEventListener('click', e => { e.stopPropagation(); goTo(DETOUR_I); });
+}
 lbl('c_fund', 'chart', V(.95, 4.6, 0), 'National Fund', 'cap');
 lbl('c_bait', 'chart', V(1.4, .5, .8), 'Baiterek tower, Astana', 'cap');
 lbl('c_cost', 'chart', () => { const L = CH.children.find(o => o.userData.L).userData.L; return L.position.clone().add(V(0, 1.9, 0)); }, 'COSTS', 'redcap', { dyn: true });
 lbl('c_ben', 'chart', () => { const R = CH.children.find(o => o.userData.R).userData.R; return R.position.clone().add(V(0, 1.9, 0)); }, 'BENEFITS', 'cap', { dyn: true });
+
+
+// ---- stunned worker (looking up at Singapore's stack)
+function stunnedModel() {
+  const g = new T.Group();
+  const skin = std(0xf0c39a, 0, 0, { roughness: .7 }), jacket = std(0xff7a1a, 0, 0, { roughness: .6 }), refl = std(0xe8f0f0, 0xffffff, .3), dark = std(0x1a1414), helmet = std(0xffd21a, 0, 0, { metalness: .2, roughness: .35 });
+  const body = new T.Mesh(new T.CylinderGeometry(.42, .5, 1.1, 24), jacket); body.position.y = .95; g.add(body);
+  const stripe = new T.Mesh(new T.CylinderGeometry(.435, .47, .1, 24), refl); stripe.position.y = .85; g.add(stripe);
+  for (const x of [-.2, .2]) { const l = new T.Mesh(new T.CylinderGeometry(.13, .13, .45, 12), std(0x2b3a55)); l.position.set(x, .22, 0); g.add(l); }
+  const neck = new T.Group(); neck.position.y = 1.55; g.add(neck);
+  const head = new T.Group(); head.position.y = .35; neck.add(head);
+  head.add(new T.Mesh(new T.SphereGeometry(.38, 32, 24), skin));
+  const hat = new T.Mesh(new T.SphereGeometry(.41, 32, 16, 0, PI * 2, 0, PI / 2), helmet); hat.position.y = .06; head.add(hat);
+  const brim = new T.Mesh(new T.CylinderGeometry(.5, .5, .04, 32), helmet); brim.position.set(0, .07, .06); head.add(brim);
+  for (const x of [-.13, .13]) {
+    const w = new T.Mesh(new T.SphereGeometry(.085, 16, 12), std(0xffffff)); w.position.set(x, .02, .33); head.add(w);
+    const pu = new T.Mesh(new T.SphereGeometry(.04, 12, 10), dark); pu.position.set(x, .06, .41); head.add(pu);
+    const br = new T.Mesh(new T.BoxGeometry(.13, .025, .02), dark); br.position.set(x, .16, .36); br.rotation.z = x > 0 ? .45 : -.45; head.add(br);
+  }
+  const mouth = new T.Mesh(new T.SphereGeometry(.07, 16, 12), std(0x3a0f0f)); mouth.scale.set(1, 1.4, .5); mouth.position.set(0, -.17, .35); head.add(mouth);
+  const drop = new T.Mesh(new T.SphereGeometry(.045, 12, 10), std(0x8fd6ff, 0x4fb6ff, .4)); drop.scale.y = 1.5; drop.position.set(.3, .12, .2); head.add(drop);
+  const arm = new T.Mesh(new T.CylinderGeometry(.1, .1, .7, 12), jacket); arm.position.set(-.45, 1.25, .2); arm.rotation.z = -.4; arm.rotation.x = -.9; g.add(arm);
+  const hand = new T.Mesh(new T.SphereGeometry(.12, 12, 10), skin); hand.position.set(-.3, 1.55, .55); g.add(hand);
+  g.userData = { neck, head, drop };
+  return g;
+}
+{
+  const w = stunnedModel(); w.position.set(-6.1, 0, .6); CH.add(w);
+  const it = reg('stacks', w);
+  it.update = t => {
+    const e = ease(clamp((t - 2.6) / .7, 0, 1)); w.scale.setScalar(Math.max(.001, e) * 1.25);
+    w.rotation.y = .55; w.userData.neck.rotation.x = -.55 - .04 * Math.sin(t * 2); w.userData.neck.rotation.z = -.05 * Math.sin(t * 1.3);
+    w.userData.drop.position.y = .12 - ((t * .5) % 1) * .3;
+  };
+}
+// ---- dancing rat
+function ratModel() {
+  const g = new T.Group();
+  const fur = std(0x8d8f99, 0, 0, { roughness: .85 }), pink = std(0xf4a3b4, 0, 0, { roughness: .6 }), dark = std(0x111111), white = std(0xffffff);
+  const hips = new T.Group(); g.add(hips);
+  const body = new T.Mesh(new T.SphereGeometry(.5, 32, 24), fur); body.scale.set(.9, 1.2, .8); body.position.y = .9; hips.add(body);
+  const belly = new T.Mesh(new T.SphereGeometry(.35, 24, 16), std(0xc9cbd3)); belly.scale.set(1, 1.2, .5); belly.position.set(0, .85, .28); hips.add(belly);
+  const head = new T.Group(); head.position.y = 1.75; hips.add(head);
+  const skull = new T.Mesh(new T.SphereGeometry(.34, 32, 24), fur); head.add(skull);
+  const snout = new T.Mesh(new T.ConeGeometry(.22, .45, 24), fur); snout.rotation.x = PI / 2; snout.position.set(0, -.06, .42); head.add(snout);
+  const nose = new T.Mesh(new T.SphereGeometry(.06, 12, 10), pink); nose.position.set(0, -.06, .65); head.add(nose);
+  for (const x of [-.14, .14]) {
+    const e = new T.Mesh(new T.SphereGeometry(.07, 12, 10), dark); e.position.set(x, .08, .28); head.add(e);
+    const sh = new T.Mesh(new T.SphereGeometry(.022, 8, 6), white); sh.position.set(x + .02, .11, .34); head.add(sh);
+    const ear = new T.Mesh(new T.SphereGeometry(.24, 24, 16), fur); ear.scale.set(1, 1, .3); ear.position.set(x * 2.1, .3, -.02); head.add(ear);
+    const ie = new T.Mesh(new T.SphereGeometry(.17, 20, 14), pink); ie.scale.set(1, 1, .3); ie.position.set(x * 2.1, .3, .04); head.add(ie);
+  }
+  for (const x of [-1, 1]) for (const k of [0, 1]) { const wh = new T.Line(new T.BufferGeometry().setFromPoints([V(x * .08, -.08, .55), V(x * .38, -.04 + k * .06, .5)]), new T.LineBasicMaterial({ color: 0xffffff })); head.add(wh); }
+  const arms = [-1, 1].map(x => { const a = new T.Group(); a.position.set(x * .38, 1.2, .1); hips.add(a);
+    const m = new T.Mesh(new T.CylinderGeometry(.07, .07, .5, 10), fur); m.position.y = .25; a.add(m);
+    const pw = new T.Mesh(new T.SphereGeometry(.09, 10, 8), pink); pw.position.y = .52; a.add(pw); return a; });
+  const legs = [-1, 1].map(x => { const l = new T.Group(); l.position.set(x * .22, .45, 0); g.add(l);
+    const m = new T.Mesh(new T.CylinderGeometry(.09, .09, .4, 10), fur); m.position.y = -.2; l.add(m);
+    const ft = new T.Mesh(new T.SphereGeometry(.12, 12, 8), pink); ft.scale.set(1, .5, 1.6); ft.position.set(0, -.42, .08); l.add(ft); return l; });
+  const tailPts = () => { const pts = []; for (let i = 0; i <= 12; i++) { const u = i / 12; pts.push(V(Math.sin(u * 4 + tailPh) * .25 * u, .6 + u * .9, -.35 - u * .6)); } return pts; };
+  let tailPh = 0; const tailM = pink; let tail = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(tailPts()), 30, .035, 8), tailM); hips.add(tail);
+  g.userData = { hips, head, arms, legs, retail: (ph) => { tailPh = ph; hips.remove(tail); tail.geometry.dispose(); tail = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(tailPts()), 30, .035, 8), tailM); hips.add(tail); } };
+  return g;
+}
+{
+  const r = ratModel(); r.position.set(7.3, 0, 4.6); CH.add(r); r.userData.base = r.position.clone();
+  const it = reg('bars', r); let fr = 0;
+  it.update = t => {
+    const e = ease(clamp((t - 4.2) / .6, 0, 1)); r.scale.setScalar(Math.max(.001, e) * .95);
+    const b = t * 6.5, u = r.userData;
+    r.position.y = r.userData.base.y + .12 * Math.abs(Math.sin(b)); r.rotation.y = -.4 + .5 * Math.sin(t * 1.6);
+    u.hips.rotation.z = .18 * Math.sin(b); u.head.rotation.z = -.2 * Math.sin(b); u.head.rotation.x = .1 * Math.sin(b * 2);
+    u.arms[0].rotation.z = 2.4 + .5 * Math.sin(b); u.arms[1].rotation.z = -2.4 + .5 * Math.sin(b + PI);
+    u.legs[0].rotation.x = .5 * Math.max(0, Math.sin(b)); u.legs[1].rotation.x = .5 * Math.max(0, -Math.sin(b));
+    if ((fr++ & 1) === 0) u.retail(t * 5);
+  };
+}
 
 // ---- STORY labels
 lbl('kz_b', 'chart', () => bubPos(-.4, 13e3).add(V(0, .95, 0)), 'KAZAKHSTAN', 'stk', { dyn: true });
@@ -1028,6 +1110,7 @@ STK.forEach(([c, v, x], i) => {
   lbl('st_v' + i, 'chart', () => V(x, stacks[i].scale.y + .15, 0), '$' + v.toFixed(1) + 'B', 'val', { dyn: true });
   lbl('st_n' + i, 'chart', V(x, -.1, .8), i === 0 ? 'Kazakhstan · crude oil exports' : 'Singapore · refined fuel exports', 'node');
 });
+lbl('st_meme', 'chart', V(-6.1, 4.15, .6), 'Kazakhstan looking at<br>Singapore’s oil money', 'node');
 lbl('bg_r', 'chart', V(-4.2, -.05, .7), 'Beef patties from Russia', 'node');
 lbl('bg_b', 'chart', V(3.2, -.05, 1.3), 'McDonald’s Kazakhstan<br>2016 → Jan 2023', 'node');
 lbl('bg_x', 'chart', V(-.5, 3.1, 0), 'sanctions · supply cut', 'redcap');
@@ -1093,7 +1176,7 @@ const SLIDES = [
       + src('Source: Bureau of National Statistics (2026a).')
   },
   { // 5 Singapore
-    shade: 'shadeT', world: 'chart', nobloom: true, cam: PAPER_CAM(V(0, 3.4, 12), V(0, 2.9, 0), 0, .01), show: ['stacks'], labels: ['st_v0', 'st_v1', 'st_n0', 'st_n1'],
+    shade: 'shadeT', world: 'chart', nobloom: true, cam: PAPER_CAM(V(0, 3.4, 12), V(0, 2.9, 0), 0, .01), show: ['stacks'], labels: ['st_v0', 'st_v1', 'st_n0', 'st_n1', 'st_meme'],
     html: box('left:4vw;top:7vh;width:60vw', kick('The Singapore paradox') + `<br>` + ttl('No oil, but more oil money', .3, 'font-size:3vw'))
       + box('right:4vw;top:30vh;width:22vw', `<div class="panel a" style="--d:3.3s">` + para('Singapore has <b>no oil at all</b>. It refines other countries’ crude and sells fuel.', 3.3, 'margin:0 0 1.4vh;max-width:none') + para('Kazakhstan has only <b>3 big refineries</b>.', 3.8, 'margin:0;max-width:none') + `</div>`)
       + src('Sources: OEC (2024), refined petroleum exports, Singapore, 2022; Bureau of National Statistics via Reuters (2023), Kazakhstan oil exports, 2022.')
@@ -1200,6 +1283,15 @@ const SLIDES = [
   }
 ];
 
+
+const NMAIN = SLIDES.length;
+SLIDES.push({
+  world: 'globe', detour: true, cam: gcam(52, 47, 3.3, .14, { t: V(0, .02, 0), orbit: .004 }), gu: { kz: 1, rus: .35, chn: 0 }, show: ['corridor'], labels: ['g_khorgos', 'g_aktau', 'g_baku', 'g_europe', 'g_china2', 'g_north', 'g_caspian'],
+  html: box('left:4vw;top:7vh;width:60vw', kick('Step 2 · The Middle Corridor') + `<br>` + ttl('China to Europe, through us'))
+    + box('left:4vw;bottom:8vh', `<div class="panel a legend" style="--d:.6s"><div><i style="background:#ff5a5f"></i>Today: the main land route goes through Russia</div><div><i style="background:#ffc845"></i>New: rail through Kazakhstan, Khorgos dry port</div><div><i style="background:#35d0e6"></i>Ship across the Caspian, Aktau to Baku, then on to Europe</div></div>`)
+    + `<button class="backbtn a" style="--d:.4s">← Back to presentation</button>`
+});
+const DETOUR_I = SLIDES.length - 1;
 // build slide DOM
 const ui = document.getElementById('ui');
 SLIDES.forEach(s => {
@@ -1212,6 +1304,7 @@ SLIDES.forEach(s => {
 });
 
 // count up
+SLIDES[DETOUR_I].el.querySelector('.backbtn').addEventListener('click', e => { e.stopPropagation(); goTo(9); });
 const COUNTS = [];
 function startCounts(s) {
   s.el.querySelectorAll('.n').forEach(n => {
@@ -1280,8 +1373,8 @@ function goTo(i, o = {}) {
   const prev = SLIDES[cur], S = SLIDES[i], tok = ++TOKEN;
   if (prev) prev.el.classList.remove('on');
   const switching = !prev || prev.world !== S.world;
-  cur = i; prog.style.width = ((i + 1) / SLIDES.length * 100) + '%';
-  countEl.textContent = String(i + 1).padStart(2, '0') + ' / ' + SLIDES.length;
+  cur = i; prog.style.width = ((S.detour ? 10 : i + 1) / NMAIN * 100) + '%';
+  countEl.textContent = String(S.detour ? 10 : i + 1).padStart(2, '0') + ' / ' + NMAIN;
   const begin = (dipDelay) => {
     if (tok !== TOKEN) return;
     slideT0 = tNow;
@@ -1317,14 +1410,16 @@ let updateHexOnce = false;
 function nav(d) {
   if (tNow - lastNav < .35) return; lastNav = tNow;
   hint.classList.add('off');
-  goTo(cur + d);
+  if (SLIDES[cur] && SLIDES[cur].detour) { goTo(9); return; }
+  goTo(clamp(cur + d, 0, NMAIN - 1));
 }
 addEventListener('keydown', e => {
   if (['ArrowRight', 'PageDown', ' ', 'Enter', 'ArrowDown'].includes(e.key)) { e.preventDefault(); nav(1); }
   else if (['ArrowLeft', 'PageUp', 'ArrowUp', 'Backspace'].includes(e.key)) { e.preventDefault(); nav(-1); }
   else if (e.code === 'KeyF' || e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') toggleFS();
   else if (e.key === 'Home') goTo(0);
-  else if (e.key === 'End') goTo(SLIDES.length - 1);
+  else if (e.key === 'End') goTo(NMAIN - 1);
+  else if (e.key === 'Escape' && SLIDES[cur] && SLIDES[cur].detour) goTo(9);
 });
 function toggleFS() {
   const d = document, el = d.documentElement;
