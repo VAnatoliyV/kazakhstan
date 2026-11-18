@@ -162,3 +162,10 @@ body.idle #fs, :fullscreen #fs { opacity: 0; pointer-events: none; }
 .blk .icos { font-size: 4vw; line-height: 1.2; display: grid; grid-template-columns: repeat(3, auto); gap: 1vh 2.2vw; filter: drop-shadow(0 .6vh .8vh rgba(0,0,0,.4)); }
 .blk.g1 { background: linear-gradient(160deg, #5b47a8, #3c2f72); }
 @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-.8vh); } }
+
+.blk { align-items: stretch; }
+.blk .mid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.blk .cap { font-size: 1.15vw; font-weight: 700; margin-top: 1.2vh; color: rgba(255,255,255,.9); }
+.blk b { align-self: flex-start; }
+.blk .icos span { font-size: 3.6vw; line-height: 1.15; }
+.blk .icos { gap: .4vh 2.4vw; }

@@ -1100,11 +1100,11 @@ const SLIDES = [
     html: box('left:4vw;top:7vh;width:70vw', kick('Proof it works') + `<br>` + ttl('The UAE did it'))
       + box('left:6vw;right:6vw;top:31vh;display:grid;grid-template-columns:1fr 1fr;gap:4vw',
         `<div class="tm a" style="--d:.8s"><div class="tmh"><span class="yr">1995</span> 🇦🇪</div><div class="tmb">`
-        + `<div class="blk oil" style="flex:61.9"><div class="ico">🛢️</div><b>61.9%</b></div>`
-        + `<div class="blk g1" style="flex:38.1"><div class="ico sm">📦</div><b>38.1%</b></div></div></div>`
+        + `<div class="blk oil" style="flex:61.9"><div class="mid"><div class="ico">🛢️</div><div class="cap">Crude oil</div></div><b>61.9%</b></div>`
+        + `<div class="blk g1" style="flex:38.1"><div class="mid"><div class="ico sm">📦</div><div class="cap">Everything else</div></div><b>38.1%</b></div></div></div>`
         + `<div class="tm a" style="--d:2.2s"><div class="tmh"><span class="yr">2024</span> 🇦🇪</div><div class="tmb">`
-        + `<div class="blk n1" style="flex:75.5"><div class="icos">🏗️ ✈️ 🏦 🏭 🛍️ 🏙️</div><b>75.5%</b></div>`
-        + `<div class="blk oil" style="flex:24.5"><div class="ico sm">🛢️</div><b>24.5%</b></div></div></div>`)
+        + `<div class="blk n1" style="flex:75.5"><div class="mid"><div class="icos"><span>🛍️</span><span>✈️</span><span>🏦</span><span>🏭</span><span>🏗️</span><span>🏙️</span></div><div class="cap">Non oil: trade, tourism, finance, factories</div></div><b>75.5%</b></div>`
+        + `<div class="blk oil" style="flex:24.5"><div class="mid"><div class="ico sm">🛢️</div><div class="cap">Oil</div></div><b>24.5%</b></div></div></div>`)
       + src('Sources: OEC (2024), UAE exports 1995; The National (2025, June 15), UAE GDP 2024, non oil share of real GDP.')
   },
   { // 12 closing
