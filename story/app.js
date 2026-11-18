@@ -1039,7 +1039,7 @@ lbl('g_tengiz', 'globe', gl(53.38, 46.15), 'Tengiz', 'city', { occl: true });
 lbl('g_novo', 'globe', gl(37.77, 44.72), 'Novorossiysk, Russia', 'city', { occl: true });
 lbl('g_bsea', 'globe', gl(34, 43.2, 1.004), 'BLACK SEA', 'water', { occl: true });
 lbl('g_csea', 'globe', gl(50.6, 42.6, 1.004), 'CASPIAN SEA', 'water', { occl: true });
-lbl('g_cpc', 'globe', gl(45, 47.6, 1.02), 'CPC · Caspian Pipeline Consortium', 'cap', { occl: true });
+lbl('g_cpc', 'globe', gl(41.5, 48.6, 1.02), 'CPC · Caspian Pipeline Consortium', 'cap', { occl: true });
 
 const tmpV = V();
 function updateLabels() {
