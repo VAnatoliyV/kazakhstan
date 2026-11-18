@@ -184,3 +184,5 @@ body.idle #fs, :fullscreen #fs { opacity: 0; pointer-events: none; }
 .slide.on .lookup.a { transform: rotate(-2deg); }
 .lookup img { width: 100%; display: block; border-radius: .3vw; }
 .lookup .lcap { font-size: 1vw; font-weight: 800; text-align: center; margin-top: .8vh; line-height: 1.25; }
+.lookup.better { left: auto; right: 6vw; bottom: 10vh; width: 19vw; transform: rotate(2deg); }
+.slide.on .lookup.better.a { transform: rotate(2deg); }
