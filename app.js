@@ -124,6 +124,14 @@ function flowSprites(curve, n, color, size, speed, op = 1) {
   return g;
 }
 
+const CN_STARS = (() => {
+  const big = [86, 37.5], out = [{ c: big, r: 5.2, ang: 0 }];
+  [[93.8, 41.5], [97.2, 38.6], [97.2, 34.3], [93.8, 31.4]].forEach(ll => {
+    const dx = (big[0] - ll[0]) * Math.cos(ll[1] * PI / 180), dy = big[1] - ll[1];
+    out.push({ c: ll, r: 1.9, ang: Math.atan2(dy, dx) - PI / 2 });
+  });
+  return out;
+})();
 // ------------------------------------------------------------------ GLOBE
 const globe = new T.Group(); W.globe.add(globe);
 globe.add(new T.Mesh(new T.SphereGeometry(.995, 96, 64), new T.MeshBasicMaterial({ color: 0x050f1d })));
@@ -143,6 +151,7 @@ const dotsMat = new T.ShaderMaterial({
   void main(){vec3 base=vec3(.2,.5,.7)*uLand;vec3 c=base;float s=1.;
   if(cid==1.){c=mix(base,vec3(1.,.74,.22)*1.7,uKZ);s=1.+.55*uKZ;}
   else if(cid==2.){vec3 f=ll.y>61.?vec3(1.,1.,1.):(ll.y>54.?vec3(.2,.45,1.):vec3(1.,.2,.2));c=mix(base,f*1.8,uRUS);}
+  else if(cid==5.){c=mix(base,vec3(0.),uCHN);}
   else if(cid==3.){float st=0.;vec3 f=mix(vec3(1.,.15,.1),vec3(1.,.85,.1),st);c=mix(base,f*1.8,uCHN);}
   float tw=.72+.28*sin(uT*1.7+rnd*60.);vC=c*tw;
   vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=uSize*s/-mv.z;gl_Position=projectionMatrix*mv;}`,
@@ -153,7 +162,7 @@ const dotsMat = new T.ShaderMaterial({
   const d = D.dots, n = d.length / 3, pos = new Float32Array(n * 3), cid = new Float32Array(n), rnd = new Float32Array(n), llA = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) {
     const v = ll2v(d[i * 3], d[i * 3 + 1], 1.002);
-    pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z; cid[i] = d[i * 3 + 2]; rnd[i] = Math.random(); llA[i * 2] = d[i * 3]; llA[i * 2 + 1] = d[i * 3 + 1];
+    pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z; cid[i] = d[i * 3 + 2]; if (cid[i] === 3 && CN_STARS.some(st => inStar(d[i * 3], d[i * 3 + 1], st))) cid[i] = 5; rnd[i] = Math.random(); llA[i * 2] = d[i * 3]; llA[i * 2 + 1] = d[i * 3 + 1];
   }
   const g = new T.BufferGeometry();
   g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('cid', new T.BufferAttribute(cid, 1)); g.setAttribute('rnd', new T.BufferAttribute(rnd, 1)); g.setAttribute('ll', new T.BufferAttribute(llA, 2));
@@ -1175,20 +1184,30 @@ function emiratiModel() {
 }
 
 
-// ---- China flag stars drawn on the globe
-{
-  const starShape = r => { const sh = new T.Shape(); for (let i = 0; i < 10; i++) { const a = PI / 2 + i * PI / 5, rr = i % 2 ? r * .382 : r; const x = Math.cos(a) * rr, y = Math.sin(a) * rr; i ? sh.lineTo(x, y) : sh.moveTo(x, y); } return sh; };
-  const mat = new T.MeshBasicMaterial({ color: 0xc9a800, transparent: true, opacity: .9, side: T.DoubleSide, depthWrite: false });
-  const big = [86, 37], g = new T.Group();
-  const put = (ll, r, ang) => { const m = new T.Mesh(new T.ShapeGeometry(starShape(r)), mat); const p = ll2v(ll[0], ll[1], 1.007); m.position.copy(p); m.lookAt(p.clone().multiplyScalar(2)); m.rotateZ(ang); g.add(m); };
-  put(big, .075, 0);
-  [[93.5, 41], [96.5, 38.5], [96.5, 34.5], [93.5, 32]].forEach(ll => {
-    const dx = (big[0] - ll[0]) * Math.cos(ll[1] * PI / 180), dy = big[1] - ll[1];
-    put(ll, .026, -(Math.atan2(dy, dx) - PI / 2));
-  });
-  globe.add(g); reg('heart', g);
+// ---- China flag stars made of dots
+function inStar(lon, lat, st) {
+  const k = Math.cos(st.c[1] * PI / 180), x = (lon - st.c[0]) * k, y = lat - st.c[1];
+  const ca = Math.cos(-st.ang), sa = Math.sin(-st.ang), px = x * ca - y * sa, py = x * sa + y * ca;
+  const pts = []; for (let i = 0; i < 10; i++) { const a = PI / 2 + i * PI / 5, rr = i % 2 ? st.r * .382 : st.r; pts.push([Math.cos(a) * rr, Math.sin(a) * rr]); }
+  let ins = false; for (let i = 0, j = 9; i < 10; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) ins = !ins; }
+  return ins;
 }
-
+{
+  const P = [];
+  CN_STARS.forEach(st => {
+    const step = st.r > 3 ? .5 : .36, k = Math.cos(st.c[1] * PI / 180);
+    for (let la = st.c[1] - st.r; la <= st.c[1] + st.r; la += step) for (let lo = st.c[0] - st.r / k; lo <= st.c[0] + st.r / k; lo += step / k)
+      if (inStar(lo, la, st)) { const v = ll2v(lo, la, 1.003); P.push(v.x, v.y, v.z); }
+  });
+  const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(new Float32Array(P), 3));
+  const mat = new T.ShaderMaterial({
+    uniforms: { uSize: dotsMat.uniforms.uSize, uO: { value: 1 }, uT: dotsMat.uniforms.uT },
+    vertexShader: 'uniform float uSize;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=uSize*1.25/-mv.z;gl_Position=projectionMatrix*mv;}',
+    fragmentShader: 'uniform float uO;void main(){float r=length(gl_PointCoord-.5);if(r>.5)discard;gl_FragColor=vec4(vec3(1.,.82,.1)*1.6*smoothstep(.5,.05,r)*uO,1.);}',
+    transparent: true, blending: T.AdditiveBlending, depthWrite: false
+  });
+  const pts = new T.Points(geo, mat); globe.add(pts); reg('heart', pts);
+}
 // ---- STORY labels
 lbl('kz_b', 'chart', () => bubPos(-.4, 13e3).add(V(0, .95, 0)), 'KAZAKHSTAN', 'stk', { dyn: true });
 lbl('ax_x', 'chart', V(3.6, -.35, 0), 'Complexity of what a country makes →', 'axis');
