@@ -143,7 +143,7 @@ const dotsMat = new T.ShaderMaterial({
   void main(){vec3 base=vec3(.2,.5,.7)*uLand;vec3 c=base;float s=1.;
   if(cid==1.){c=mix(base,vec3(1.,.74,.22)*1.7,uKZ);s=1.+.55*uKZ;}
   else if(cid==2.){vec3 f=ll.y>61.?vec3(1.,1.,1.):(ll.y>54.?vec3(.2,.45,1.):vec3(1.,.2,.2));c=mix(base,f*1.8,uRUS);}
-  else if(cid==3.){float st=max(1.-step(4.,distance(ll,vec2(86.,41.))),max(max(1.-step(1.8,distance(ll,vec2(92.,47.))),1.-step(1.8,distance(ll,vec2(95.,44.)))),max(1.-step(1.8,distance(ll,vec2(95.,40.))),1.-step(1.8,distance(ll,vec2(92.,37.))))));vec3 f=mix(vec3(1.,.15,.1),vec3(1.,.85,.1),st);c=mix(base,f*1.8,uCHN);}
+  else if(cid==3.){float st=0.;vec3 f=mix(vec3(1.,.15,.1),vec3(1.,.85,.1),st);c=mix(base,f*1.8,uCHN);}
   float tw=.72+.28*sin(uT*1.7+rnd*60.);vC=c*tw;
   vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=uSize*s/-mv.z;gl_Position=projectionMatrix*mv;}`,
   fragmentShader: 'varying vec3 vC;void main(){float r=length(gl_PointCoord-.5);if(r>.5)discard;gl_FragColor=vec4(vC*smoothstep(.5,.05,r),1.);}',
@@ -1008,7 +1008,7 @@ function lbl(key, world, pos, text, cls, o = {}) {
 const gl = (lon, lat, r = 1.01) => ll2v(lon, lat, r);
 lbl('g_kz', 'globe', gl(63.5, 47, 1.02), 'KAZAKHSTAN', 'country', { occl: true });
 lbl('g_rus', 'globe', gl(75, 60), 'RUSSIA', 'country hot', { occl: true });
-lbl('g_chn', 'globe', gl(95, 35), 'CHINA', 'country hot', { occl: true });
+lbl('g_chn', 'globe', gl(104, 31), 'CHINA', 'country hot', { occl: true });
 lbl('g_astana', 'globe', gl(...CITY.astana), 'Astana · capital', 'city', { occl: true });
 lbl('g_almaty', 'globe', gl(...CITY.almaty), 'Almaty · “city of apples”', 'city', { occl: true });
 lbl('g_italy', 'globe', gl(...CITY.rome), 'Italy', 'city', { occl: true });
@@ -1172,6 +1172,21 @@ function emiratiModel() {
     u.robe.scale.x = u.robe.scale.z = 1 + .04 * Math.sin(b);
     sparks.forEach((sp, i) => { const q = (t * .4 + i / 8) % 1, a = i / 8 * PI * 2 + t; sp.position.set(Math.cos(a) * (.6 + q * .4), q * 2.6, Math.sin(a) * (.6 + q * .4)); sp.material.opacity *= (1 - q) * e; });
   };
+}
+
+
+// ---- China flag stars drawn on the globe
+{
+  const starShape = r => { const sh = new T.Shape(); for (let i = 0; i < 10; i++) { const a = PI / 2 + i * PI / 5, rr = i % 2 ? r * .382 : r; const x = Math.cos(a) * rr, y = Math.sin(a) * rr; i ? sh.lineTo(x, y) : sh.moveTo(x, y); } return sh; };
+  const mat = new T.MeshBasicMaterial({ color: 0xc9a800, transparent: true, opacity: .9, side: T.DoubleSide, depthWrite: false });
+  const big = [86, 37], g = new T.Group();
+  const put = (ll, r, ang) => { const m = new T.Mesh(new T.ShapeGeometry(starShape(r)), mat); const p = ll2v(ll[0], ll[1], 1.007); m.position.copy(p); m.lookAt(p.clone().multiplyScalar(2)); m.rotateZ(ang); g.add(m); };
+  put(big, .075, 0);
+  [[93.5, 41], [96.5, 38.5], [96.5, 34.5], [93.5, 32]].forEach(ll => {
+    const dx = (big[0] - ll[0]) * Math.cos(ll[1] * PI / 180), dy = big[1] - ll[1];
+    put(ll, .026, -(Math.atan2(dy, dx) - PI / 2));
+  });
+  globe.add(g); reg('heart', g);
 }
 
 // ---- STORY labels
