@@ -139,24 +139,24 @@ globe.add(new T.Mesh(new T.SphereGeometry(.995, 96, 64), new T.MeshBasicMaterial
 }
 const dotsMat = new T.ShaderMaterial({
   uniforms: { uT: { value: 0 }, uKZ: { value: 1 }, uRUS: { value: 0 }, uCHN: { value: 0 }, uLand: { value: 1 }, uSize: { value: 5 * DPR * innerHeight / 1000 } },
-  vertexShader: `attribute float cid;attribute float rnd;uniform float uT,uKZ,uRUS,uCHN,uLand,uSize;varying vec3 vC;
+  vertexShader: `attribute float cid;attribute float rnd;attribute vec2 ll;uniform float uT,uKZ,uRUS,uCHN,uLand,uSize;varying vec3 vC;
   void main(){vec3 base=vec3(.2,.5,.7)*uLand;vec3 c=base;float s=1.;
   if(cid==1.){c=mix(base,vec3(1.,.74,.22)*1.7,uKZ);s=1.+.55*uKZ;}
-  else if(cid==2.){c=mix(base,vec3(.95,.3,.3)*1.9,uRUS);}
-  else if(cid==3.){c=mix(base,vec3(1.,.42,.25)*1.9,uCHN);}
+  else if(cid==2.){vec3 f=ll.y>61.?vec3(1.,1.,1.):(ll.y>54.?vec3(.2,.45,1.):vec3(1.,.2,.2));c=mix(base,f*1.8,uRUS);}
+  else if(cid==3.){float st=max(1.-step(4.,distance(ll,vec2(86.,41.))),max(max(1.-step(1.8,distance(ll,vec2(92.,47.))),1.-step(1.8,distance(ll,vec2(95.,44.)))),max(1.-step(1.8,distance(ll,vec2(95.,40.))),1.-step(1.8,distance(ll,vec2(92.,37.))))));vec3 f=mix(vec3(1.,.15,.1),vec3(1.,.85,.1),st);c=mix(base,f*1.8,uCHN);}
   float tw=.72+.28*sin(uT*1.7+rnd*60.);vC=c*tw;
   vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=uSize*s/-mv.z;gl_Position=projectionMatrix*mv;}`,
   fragmentShader: 'varying vec3 vC;void main(){float r=length(gl_PointCoord-.5);if(r>.5)discard;gl_FragColor=vec4(vC*smoothstep(.5,.05,r),1.);}',
   transparent: true, blending: T.AdditiveBlending, depthWrite: false
 });
 {
-  const d = D.dots, n = d.length / 3, pos = new Float32Array(n * 3), cid = new Float32Array(n), rnd = new Float32Array(n);
+  const d = D.dots, n = d.length / 3, pos = new Float32Array(n * 3), cid = new Float32Array(n), rnd = new Float32Array(n), llA = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) {
     const v = ll2v(d[i * 3], d[i * 3 + 1], 1.002);
-    pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z; cid[i] = d[i * 3 + 2]; rnd[i] = Math.random();
+    pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z; cid[i] = d[i * 3 + 2]; rnd[i] = Math.random(); llA[i * 2] = d[i * 3]; llA[i * 2 + 1] = d[i * 3 + 1];
   }
   const g = new T.BufferGeometry();
-  g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('cid', new T.BufferAttribute(cid, 1)); g.setAttribute('rnd', new T.BufferAttribute(rnd, 1));
+  g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('cid', new T.BufferAttribute(cid, 1)); g.setAttribute('rnd', new T.BufferAttribute(rnd, 1)); g.setAttribute('ll', new T.BufferAttribute(llA, 2));
   globe.add(new T.Points(g, dotsMat));
   const lm = new T.LineBasicMaterial({ color: 0xffc845, transparent: true, opacity: .9, blending: T.AdditiveBlending, depthWrite: false });
   for (const ring of D.outline) globe.add(new T.Line(new T.BufferGeometry().setFromPoints(ring.map(([lo, la]) => ll2v(lo, la, 1.004))), lm));
@@ -827,22 +827,57 @@ function billsTex() {
   BILLS = new T.CanvasTexture(c); BILLS.wrapS = BILLS.wrapT = T.RepeatWrapping; BILLS.repeat.set(1, 3); return BILLS;
 }
 const stacks = [];
+let NOTE;
+function noteTex() {
+  if (NOTE) return NOTE;
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 256, 128); gr.addColorStop(0, '#5fae6a'); gr.addColorStop(1, '#3d8a4c'); g.fillStyle = gr; g.fillRect(0, 0, 256, 128);
+  g.strokeStyle = 'rgba(230,255,230,.7)'; g.lineWidth = 4; g.strokeRect(8, 8, 240, 112);
+  g.fillStyle = 'rgba(230,255,230,.5)'; g.beginPath(); g.arc(70, 64, 30, 0, 7); g.fill();
+  g.fillStyle = '#e8ffe8'; g.font = 'bold 54px Arial'; g.fillText('$', 52, 82); g.font = 'bold 30px Arial'; g.fillText('100', 160, 50); g.fillText('100', 160, 104);
+  NOTE = new T.CanvasTexture(c); return NOTE;
+}
+const BW = .9, BH = .2, BD = .45, LAYER = BH + .02;
 {
   const g = new T.Group(); CH.add(g);
-  STK.forEach(([c, v, x]) => {
-    const geo = new T.BoxGeometry(2.2, 1, 1.4); geo.translate(0, .5, 0);
-    const side = new T.MeshStandardMaterial({ map: billsTex(), roughness: .7 });
-    const top = new T.MeshStandardMaterial({ color: 0xa9d8a0, roughness: .7 });
-    const m = new T.Mesh(geo, [side, side, top, top, side, side]); m.position.x = x; m.scale.y = .001; g.add(m); stacks.push(m);
-    const fl = new T.Group(); g.add(fl); m.userData.flag = fl;
-    const back = new T.Mesh(new T.PlaneGeometry(1.86, 1.28), basic({ color: 0xf4f1fa })); fl.add(back);
-    const f = new T.Mesh(new T.PlaneGeometry(1.74, 1.16), basic({ map: flagTex(c) })); f.position.z = .005; fl.add(f);
+  const edge = (() => { const c = document.createElement('canvas'); c.width = 64; c.height = 32; const x = c.getContext('2d');
+    for (let y = 0; y < 32; y += 2) { x.fillStyle = y % 4 ? '#8fcf8f' : '#e6f5e0'; x.fillRect(0, y, 64, 2); } return new T.CanvasTexture(c); })();
+  const sideM = new T.MeshStandardMaterial({ map: edge, roughness: .7 }), topM = new T.MeshStandardMaterial({ map: noteTex(), roughness: .6 });
+  const bandM = new T.MeshStandardMaterial({ color: 0xf2e6c4, roughness: .5 });
+  STK.forEach(([c, v, x], si) => {
+    const layers = Math.round(v / 3.4), n = layers * 4;
+    const geo = new T.BoxGeometry(BW, BH, BD);
+    const bundles = new T.InstancedMesh(geo, [sideM, sideM, topM, topM, sideM, sideM], n);
+    const bands = new T.InstancedMesh(new T.BoxGeometry(.16, BH + .012, BD + .012), bandM, n);
+    bundles.frustumCulled = bands.frustumCulled = false;
+    const grp = new T.Group(); grp.position.x = x + .5; g.add(grp); grp.add(bundles, bands);
+    const slots = []; for (let l = 0; l < layers; l++) for (let k = 0; k < 4; k++) slots.push([(k % 2 - .5) * (BW + .04), BH / 2 + l * LAYER, (Math.floor(k / 2) - .5) * (BD + .04), (Math.random() - .5) * .12]);
+    // flag on a pole
+    const pole = new T.Mesh(new T.CylinderGeometry(.022, .022, 1.15, 8), std(0xd8dde3, 0, 0, { metalness: .8, roughness: .3 })); pole.position.y = .575; 
+    const top = new T.Group(); grp.add(top); top.add(pole);
+    const fgeo = new T.PlaneGeometry(.8, .54, 20, 10); const base = fgeo.attributes.position.array.slice();
+    const flag = new T.Mesh(fgeo, new T.MeshBasicMaterial({ map: flagTex(c), side: T.DoubleSide })); flag.position.set(.42, .86, 0); top.add(flag);
+    const st = { bundles, bands, slots, top, flag, fgeo, base, scale: { y: .001 }, layers };
+    stacks.push(st);
   });
+  const M = new T.Matrix4(), Q = new T.Quaternion(), S1 = new T.Vector3(1, 1, 1), P = new T.Vector3();
   const it = reg('stacks', g);
-  it.update = t => stacks.forEach((m, i) => {
-    const e = ease(clamp((t - .6 - i * .9) / 1.6, 0, 1)); m.scale.y = Math.max(.001, STK[i][1] * SK * e);
-    const fl = m.userData.flag; const r = m.rotation.y; fl.position.set(m.position.x + Math.sin(r) * .72, Math.max(.7, m.scale.y - .9), Math.cos(r) * .72); fl.rotation.y = r; fl.visible = m.scale.y > 1.6;
-    m.rotation.y = .25 * Math.sin(t * .5 + i);
+  it.update = t => stacks.forEach((st, i) => {
+    const t0 = .5 + i * .7, per = 1.9 / st.slots.length; let topY = 0;
+    st.slots.forEach(([x, y, z, r], k) => {
+      const u = clamp((t - t0 - k * per) / .35, 0, 1), e = 1 - Math.pow(1 - u, 3);
+      P.set(x, y + (1 - e) * 2.5, z); Q.setFromAxisAngle(Y, r + (1 - e) * 1.2);
+      const sc = u > 0 ? 1 : .0001; S1.set(sc, sc, sc); M.compose(P, Q, S1);
+      st.bundles.setMatrixAt(k, M); st.bands.setMatrixAt(k, M);
+      if (u > .9) topY = y + BH / 2;
+    });
+    st.bundles.instanceMatrix.needsUpdate = st.bands.instanceMatrix.needsUpdate = true;
+    st.scale.y = Math.max(.001, topY);
+    const done = clamp((t - t0 - 2.0) / .5, 0, 1);
+    st.top.position.y = topY; st.top.scale.setScalar(Math.max(.001, ease(done)));
+    const a = st.fgeo.attributes.position.array;
+    for (let j = 0; j < a.length; j += 3) { const fx = st.base[j] + .4; a[j + 2] = Math.sin(fx * 5 - t * 5) * .07 * fx; }
+    st.fgeo.attributes.position.needsUpdate = true;
   });
 }
 
@@ -1147,8 +1182,8 @@ lbl('ax_y', 'chart', V(-5.3, 4.9, 0), '↑ Income per person', 'axis');
   const b = BUB.find(x => x[0] === c); lbl(k, 'chart', bubPos(b[1], b[2]).add(V(0, -.52, 0)), t, 'mini');
 });
 STK.forEach(([c, v, x], i) => {
-  lbl('st_v' + i, 'chart', () => V(x, stacks[i].scale.y + .15, 0), '$' + v.toFixed(1) + 'B', 'val', { dyn: true });
-  lbl('st_n' + i, 'chart', V(x, -.1, .8), i === 0 ? 'Kazakhstan · crude oil exports' : 'Singapore · refined fuel exports', 'node');
+  lbl('st_v' + i, 'chart', () => V(x + .5, stacks[i].scale.y + 1.55, 0), '$' + v.toFixed(1) + 'B', 'val', { dyn: true });
+  lbl('st_n' + i, 'chart', V(x + .5, -.1, .8), i === 0 ? 'Kazakhstan · crude oil exports' : 'Singapore · refined fuel exports', 'node');
 });
 lbl('st_meme', 'chart', V(-6.1, 4.15, .6), 'Kazakhstan looking at<br>Singapore’s oil money', 'node');
 lbl('bg_r', 'chart', V(-4.2, -.05, .7), 'Beef patties from Russia', 'node');
@@ -1197,7 +1232,7 @@ const SLIDES = [
       + `<div class="orn" style="--d:2.2s;left:4vw;bottom:7vh;width:44vw"></div><div class="sun" style="--d:1.2s;left:4vw;top:7vh;width:7vw;height:7vw"></div>`
   },
   { // 2 landlocked
-    world: 'globe', cam: gcam(72, 38, 2.45, .22, { orbit: .012 }), gu: { kz: 1, rus: .8, chn: .8 }, show: ['heart'], labels: ['g_kz', 'g_rus', 'g_chn', 'g_astana', 'g_almaty'],
+    world: 'globe', cam: gcam(72, 38, 2.45, .22, { orbit: .012 }), gu: { kz: 1, rus: 1, chn: 1 }, show: ['heart'], labels: ['g_kz', 'g_rus', 'g_chn', 'g_astana', 'g_almaty'],
     html: box('left:4vw;top:11vh;width:31vw', kick('Where we are') + `<br>` + ttl('The biggest country with no sea')
       + stat('9th', 'largest country on Earth', 'gold', .9) + stat('#1', 'largest landlocked country: every export crosses a neighbor', 'white', 1.3, true)
       + stat('20.6 M', 'people on a huge land, between Russia and China', 'teal', 1.7))
@@ -1250,7 +1285,7 @@ const SLIDES = [
       + src('Source: The Times of Central Asia (2026), shareholder structures of Tengiz, Kashagan and Karachaganak.')
   },
   { // 8 pipeline via Russia
-    world: 'globe', cam: gcam(47, 39, 1.95, .22, { t: ll2v(47, 45, .62), orbit: 0 }), gu: { kz: 1, rus: .5, chn: 0 }, show: ['cpc'], labels: ['g_tengiz', 'g_novo', 'g_bsea', 'g_csea', 'g_cpc'],
+    world: 'globe', cam: gcam(47, 39, 1.95, .22, { t: ll2v(47, 45, .62), orbit: 0 }), gu: { kz: 1, rus: .9, chn: 0 }, show: ['cpc'], labels: ['g_tengiz', 'g_novo', 'g_bsea', 'g_csea', 'g_cpc'],
     html: box('left:4vw;top:11vh;width:31vw', kick('And then') + `<br>` + ttl('The oil leaves through Russia')
       + stat('80%+', 'of our pipeline crude exports go through the CPC (Caspian Pipeline Consortium) pipeline to Russia’s Black Sea coast', 'gold', 1.0)
       + stat('20.75%', 'Kazakhstan’s share of that pipeline', 'white', 1.5))
