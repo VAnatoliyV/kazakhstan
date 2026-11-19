@@ -1347,32 +1347,51 @@ function inStar(lon, lat, st) {
   const pts = new T.Points(geo, mat); globe.add(pts); reg('heart', pts);
 }
 
-// ---- Kazakhstan flag details (sun, rays, eagle, ornament) as dense dots
-const KZFLAG = { o: { v: 0 } };
+// ---- Kazakhstan flag emblem drawn on a canvas, then sampled into dense gold dots
 {
   const inPoly = (x, y, ring) => { let ins = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) ins = !ins; } return ins; };
   const inKZ = (lo, la) => D.outline.some(r => inPoly(lo, la, r));
-  const gold = (lo, la) => {
-    const qx = (lo - 67) * .67, qy = la - 49, r = Math.hypot(qx, qy), a = Math.atan2(qy, qx);
-    if (r < 1.9) return 1;
-    if (r > 2.4 && r < 3.9 && ((a / (PI * 2) * 32 % 1) + 1) % 1 < .5) return 1;
-    const wy = -4.3 + .035 * qx * qx; if (Math.abs(qy - wy) < .55 && Math.abs(qx) < 6.3) return 1;
-    if (lo > 47.3 && lo < 48.9 && ((la * .9) % 1) < .55) return 1;
-    return 0;
+  const W2 = 1000, H2 = 500, LO0 = 46, LO1 = 87.5, LA0 = 40.5, LA1 = 55.5;
+  const c = document.createElement('canvas'); c.width = W2; c.height = H2; const x = c.getContext('2d');
+  x.fillStyle = '#fff'; x.strokeStyle = '#fff';
+  const cx = 545, cy = 205;
+  x.beginPath(); x.arc(cx, cy, 64, 0, 7); x.fill();
+  for (let i = 0; i < 32; i++) { const a = i / 32 * PI * 2, b = .075; x.beginPath();
+    x.moveTo(cx + Math.cos(a - b) * 76, cy + Math.sin(a - b) * 76); x.lineTo(cx + Math.cos(a) * 116, cy + Math.sin(a) * 116); x.lineTo(cx + Math.cos(a + b) * 76, cy + Math.sin(a + b) * 76); x.fill(); }
+  const wing = s => { x.save(); x.translate(cx, 0); x.scale(s, 1); x.beginPath();
+    x.moveTo(-5, 352); x.quadraticCurveTo(-125, 348, -162, 250);
+    [[-178, 200], [-160, 236], [-166, 190], [-146, 232], [-148, 186], [-130, 232]].forEach(([px, py]) => x.lineTo(px, py));
+    x.lineTo(-124, 245); x.quadraticCurveTo(-100, 318, -5, 322); x.closePath(); x.fill(); x.restore(); };
+  wing(1); wing(-1);
+  x.beginPath(); x.ellipse(cx + 15, 360, 62, 19, -.08, 0, 7); x.fill();
+  x.beginPath(); x.ellipse(cx - 42, 352, 16, 11, 0, 0, 7); x.fill();
+  x.beginPath(); x.moveTo(cx - 55, 350); x.lineTo(cx - 72, 358); x.lineTo(cx - 54, 360); x.fill();
+  x.beginPath(); x.moveTo(cx + 60, 360); for (let k = 0; k < 5; k++) { x.lineTo(cx + 90 + k * 3, 350 + k * 6); x.lineTo(cx + 70, 360 + k * 3); } x.lineTo(cx + 60, 372); x.fill();
+  const finish = () => {
+    const img = x.getImageData(0, 0, W2, H2).data, P = [];
+    for (let la = LA0; la < LA1; la += .2) for (let lo = LO0; lo < LO1; lo += .2 / .67) {
+      const px = Math.round((lo - LO0) / (LO1 - LO0) * W2), py = Math.round((LA1 - la) / (LA1 - LA0) * H2);
+      if (px < 0 || py < 0 || px >= W2 || py >= H2 || img[(py * W2 + px) * 4 + 3] < 128) continue;
+      if (!inKZ(lo, la)) continue;
+      const v = ll2v(lo, la, 1.0035); P.push(v.x, v.y, v.z);
+    }
+    const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(new Float32Array(P), 3));
+    const mat = new T.ShaderMaterial({
+      uniforms: { uSize: dotsMat.uniforms.uSize, uKZ: dotsMat.uniforms.uKZ },
+      vertexShader: 'uniform float uSize;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=uSize*.9/-mv.z;gl_Position=projectionMatrix*mv;}',
+      fragmentShader: 'uniform float uKZ;void main(){float r=length(gl_PointCoord-.5);if(r>.5)discard;gl_FragColor=vec4(vec3(1.,.82,.2)*1.7*smoothstep(.5,.05,r)*clamp(uKZ,0.,1.),1.);}',
+      transparent: true, blending: T.AdditiveBlending, depthWrite: false
+    });
+    globe.add(new T.Points(geo, mat));
   };
-  const P = [];
-  for (let la = 40.5; la < 55.5; la += .3) for (let lo = 46; lo < 87.5; lo += .3 / .67)
-    if (gold(lo, la) && inKZ(lo, la)) { const v = ll2v(lo, la, 1.0035); P.push(v.x, v.y, v.z); }
-  const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(new Float32Array(P), 3));
-  const mat = new T.ShaderMaterial({
-    uniforms: { uSize: dotsMat.uniforms.uSize, uO: { value: 1 }, uKZ: dotsMat.uniforms.uKZ },
-    vertexShader: 'uniform float uSize;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=uSize*1.05/-mv.z;gl_Position=projectionMatrix*mv;}',
-    fragmentShader: 'uniform float uO,uKZ;void main(){float r=length(gl_PointCoord-.5);if(r>.5)discard;gl_FragColor=vec4(vec3(1.,.8,.15)*1.7*smoothstep(.5,.05,r)*uO*clamp(uKZ,0.,1.),1.);}',
-    transparent: true, blending: T.AdditiveBlending, depthWrite: false
-  });
-  globe.add(new T.Points(geo, mat));
+  x.lineWidth = 10; x.lineCap = 'round';
+  for (let y0 = 20; y0 < 480; y0 += 58) {
+    const X = 80; x.beginPath(); x.moveTo(X, y0); x.lineTo(X + 16, y0 + 22); x.lineTo(X, y0 + 44); x.lineTo(X - 16, y0 + 22); x.closePath(); x.stroke();
+    for (const sgn of [-1, 1]) { x.beginPath(); x.moveTo(X, y0 + 44); x.bezierCurveTo(X + sgn * 22, y0 + 50, X + sgn * 26, y0 + 30, X + sgn * 14, y0 + 28); x.stroke(); }
+    x.beginPath(); x.arc(X, y0 + 22, 5, 0, 7); x.fill();
+  }
+  finish();
 }
-
 // ---- STORY labels
 lbl('kz_b', 'chart', () => bubPos(-.4, 13e3).add(V(0, .95, 0)), 'KAZAKHSTAN', 'stk', { dyn: true });
 lbl('ax_x', 'chart', V(3.6, -.35, 0), 'Complexity of what a country makes →', 'axis');
@@ -1431,7 +1450,7 @@ const SLIDES = [
       + `<div class="orn" style="--d:2.2s;left:4vw;bottom:7vh;width:44vw"></div><div class="sun" style="--d:1.2s;left:4vw;top:7vh;width:7vw;height:7vw"></div>`
   },
   { // 2 landlocked
-    world: 'globe', cam: gcam(72, 38, 2.45, .22, { orbit: .012 }), gu: { kz: 1, rus: 1, chn: 1 }, show: ['heart'], labels: ['g_kz', 'g_rus', 'g_chn', 'g_astana', 'g_almaty'],
+    world: 'globe', cam: gcam(72, 38, 2.45, .22, { orbit: .012 }), gu: { kz: 1, rus: 1, chn: 1 }, show: ['heart'], labels: ['g_rus', 'g_chn', 'g_astana', 'g_almaty'],
     html: box('left:4vw;top:11vh;width:31vw', kick('Where we are') + `<br>` + ttl('The biggest country with no sea')
       + stat('9th', 'largest country on Earth', 'gold', .9) + stat('#1', 'largest landlocked country: every export crosses a neighbor', 'white', 1.3, true)
       + stat('20.6 M', 'people on a huge land, between Russia and China', 'teal', 1.7))
