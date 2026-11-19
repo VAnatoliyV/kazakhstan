@@ -1681,7 +1681,7 @@ function goTo(i, o = {}) {
   if (i === cur && !o.force) return;
   const prev = SLIDES[cur], S = SLIDES[i], tok = ++TOKEN;
   if (prev) prev.el.classList.remove('on');
-  const switching = !prev || prev.world !== S.world;
+  const switching = !prev || active !== S.world;
   cur = i; prog.style.width = ((S.detour ? 10 : i + 1) / NMAIN * 100) + '%';
   countEl.textContent = String(S.detour ? 10 : i + 1).padStart(2, '0') + ' / ' + NMAIN;
   const begin = (dipDelay) => {
@@ -1711,6 +1711,7 @@ function goTo(i, o = {}) {
       dip.classList.remove('on');
     }, o.instant ? 0 : 480);
   } else {
+    dip.classList.remove('on');
     startTween(S.cam, fromPose(), 2.8, S.world === 'globe'); slideT0 = tNow;
     setTimeout(() => begin(0), 250);
   }
