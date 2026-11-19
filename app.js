@@ -1363,7 +1363,7 @@ lbl('bg_b', 'chart', V(3.2, -.05, 1.3), 'McDonald’s Kazakhstan<br>2016 → Jan
 lbl('bg_x', 'chart', V(-.5, 3.1, 0), 'sanctions · supply cut', 'redcap');
 PIES.forEach(([n, s, x], i) => {
   lbl('pi_n' + i, 'chart', V(x, .15, 1.9), n, 'stk');
-  lbl('pi_v' + i, 'chart', V(x, 3.35, 0), 'Kazakhstan: ' + s[0] + '%', 'gold');
+  lbl('pi_v' + i, 'chart', V(x, 3.35, 0), n + '<span style="color:#fff;font-weight:600"> · state share ' + s[0] + '%</span>', 'gold');
 });
 lbl('g_tengiz', 'globe', gl(53.38, 46.15), 'Tengiz', 'city', { occl: true });
 lbl('g_novo', 'globe', gl(37.77, 44.72), 'Novorossiysk, Russia', 'city', { occl: true });
@@ -1451,9 +1451,9 @@ const SLIDES = [
       + src('Source: Reuters (2023, January 4), McDonald’s set to exit Kazakhstan over Russian supply curbs.')
   },
   { // 7 three whales
-    shade: 'shadeT', world: 'chart', nobloom: true, cam: PAPER_CAM(V(0, 3.2, 12.5), V(0, 2.1, 0), 0, 0), show: ['pies'], labels: ['pi_n0', 'pi_n1', 'pi_n2', 'pi_v0', 'pi_v1', 'pi_v2'],
+    shade: 'shadeT', world: 'chart', nobloom: true, cam: PAPER_CAM(V(0, 3.2, 12.5), V(0, 2.1, 0), 0, 0), show: ['pies'], labels: ['pi_v0', 'pi_v1', 'pi_v2'],
     html: box('left:4vw;top:7vh;width:60vw', kick('The three whales') + `<br>` + ttl('Whose oil is it?'))
-      + box('left:0;right:0;bottom:11vh;text-align:center', `<div class="a" style="--d:3.6s;font-size:1.5vw;font-weight:700">Our 3 biggest fields make most of our oil. <span style="color:var(--gold)">The cut slice</span> is the state’s share. The rest of the pie belongs to foreign companies.</div>`)
+      + box('left:0;right:0;bottom:11vh;text-align:center', `<div class="a" style="--d:3.6s;font-size:1.5vw;font-weight:700">These are Kazakhstan’s 3 biggest oil fields. <span style="color:var(--gold)">The cut slice</span> is the state’s share. The rest belongs to foreign companies.</div>`)
       + src('Source: The Times of Central Asia (2026), shareholder structures of Tengiz, Kashagan and Karachaganak.')
   },
   { // 8 pipeline via Russia
