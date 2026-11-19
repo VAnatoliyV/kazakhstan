@@ -149,7 +149,7 @@ const dotsMat = new T.ShaderMaterial({
   uniforms: { uT: { value: 0 }, uKZ: { value: 1 }, uRUS: { value: 0 }, uCHN: { value: 0 }, uLand: { value: 1 }, uSize: { value: 5 * DPR * innerHeight / 1000 } },
   vertexShader: `attribute float cid;attribute float rnd;attribute vec2 ll;uniform float uT,uKZ,uRUS,uCHN,uLand,uSize;varying vec3 vC;
   void main(){vec3 base=vec3(.2,.5,.7)*uLand;vec3 c=base;float s=1.;
-  if(cid==1.){c=mix(base,vec3(1.,.74,.22)*1.7,uKZ);s=1.+.55*uKZ;}
+  if(cid==1.){c=mix(base,vec3(0.,.62,.78)*1.7,uKZ);s=1.+.55*uKZ;}
   else if(cid==2.){vec3 f=ll.y>61.?vec3(1.,1.,1.):(ll.y>54.?vec3(.2,.45,1.):vec3(1.,.2,.2));c=mix(base,f*1.8,uRUS);}
   else if(cid==5.){c=mix(base,vec3(0.),uCHN);}
   else if(cid==3.){float st=0.;vec3 f=mix(vec3(1.,.15,.1),vec3(1.,.85,.1),st);c=mix(base,f*1.8,uCHN);}
@@ -1346,6 +1346,33 @@ function inStar(lon, lat, st) {
   });
   const pts = new T.Points(geo, mat); globe.add(pts); reg('heart', pts);
 }
+
+// ---- Kazakhstan flag details (sun, rays, eagle, ornament) as dense dots
+const KZFLAG = { o: { v: 0 } };
+{
+  const inPoly = (x, y, ring) => { let ins = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) ins = !ins; } return ins; };
+  const inKZ = (lo, la) => D.outline.some(r => inPoly(lo, la, r));
+  const gold = (lo, la) => {
+    const qx = (lo - 67) * .67, qy = la - 49, r = Math.hypot(qx, qy), a = Math.atan2(qy, qx);
+    if (r < 1.9) return 1;
+    if (r > 2.4 && r < 3.9 && ((a / (PI * 2) * 32 % 1) + 1) % 1 < .5) return 1;
+    const wy = -4.3 + .035 * qx * qx; if (Math.abs(qy - wy) < .55 && Math.abs(qx) < 6.3) return 1;
+    if (lo > 47.3 && lo < 48.9 && ((la * .9) % 1) < .55) return 1;
+    return 0;
+  };
+  const P = [];
+  for (let la = 40.5; la < 55.5; la += .3) for (let lo = 46; lo < 87.5; lo += .3 / .67)
+    if (gold(lo, la) && inKZ(lo, la)) { const v = ll2v(lo, la, 1.0035); P.push(v.x, v.y, v.z); }
+  const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(new Float32Array(P), 3));
+  const mat = new T.ShaderMaterial({
+    uniforms: { uSize: dotsMat.uniforms.uSize, uO: { value: 1 }, uKZ: dotsMat.uniforms.uKZ },
+    vertexShader: 'uniform float uSize;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=uSize*1.05/-mv.z;gl_Position=projectionMatrix*mv;}',
+    fragmentShader: 'uniform float uO,uKZ;void main(){float r=length(gl_PointCoord-.5);if(r>.5)discard;gl_FragColor=vec4(vec3(1.,.8,.15)*1.7*smoothstep(.5,.05,r)*uO*clamp(uKZ,0.,1.),1.);}',
+    transparent: true, blending: T.AdditiveBlending, depthWrite: false
+  });
+  globe.add(new T.Points(geo, mat));
+}
+
 // ---- STORY labels
 lbl('kz_b', 'chart', () => bubPos(-.4, 13e3).add(V(0, .95, 0)), 'KAZAKHSTAN', 'stk', { dyn: true });
 lbl('ax_x', 'chart', V(3.6, -.35, 0), 'Complexity of what a country makes →', 'axis');
