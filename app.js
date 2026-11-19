@@ -826,9 +826,9 @@ function phoneModel() {
     for (let i = 0; i < 12; i++) { const cx = 48 + (i % 4) * 54, cy = 180 + Math.floor(i / 4) * 70; x.fillStyle = cols[i]; x.beginPath(); x.roundRect(cx - 20, cy - 20, 40, 40, 10); x.fill(); }
     x.fillStyle = 'rgba(255,255,255,.25)'; x.beginPath(); x.roundRect(20, 420, w - 40, 60, 24); x.fill();
   });
-  const sc = new T.Mesh(new T.ShapeGeometry(rrect(.56, 1.18, .08)), new T.MeshBasicMaterial({ map: scr })); sc.position.z = .042;
+  const sc = new T.Mesh(new T.ShapeGeometry(rrect(.56, 1.18, .08)), new T.MeshBasicMaterial({ map: scr, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })); sc.position.z = .06;
   const uv = sc.geometry.attributes.uv, pos = sc.geometry.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, pos.getX(i) / .56 + .5, pos.getY(i) / 1.18 + .5); g.add(sc);
-  const notch = new T.Mesh(new T.ShapeGeometry(rrect(.16, .04, .02)), basic({ color: 0x000000 })); notch.position.set(0, .54, .044); g.add(notch);
+  const notch = new T.Mesh(new T.ShapeGeometry(rrect(.16, .04, .02)), basic({ color: 0x000000 })); notch.position.set(0, .54, .065); g.add(notch);
   const cam = rbox(.2, .2, .03, .05, std(0x3a3d46, 0, 0, { metalness: .8, roughness: .3 })); cam.position.set(-.16, .44, -.05); g.add(cam);
   for (const [dx, dy] of [[-.04, .04], [.04, -.04]]) { const l = new T.Mesh(new T.CylinderGeometry(.03, .03, .03, 16), std(0x05070a, 0x203050, .3, { metalness: 1, roughness: .05 })); l.rotation.x = PI / 2; l.position.set(-.16 + dx, .44 + dy, -.07); g.add(l); }
   return g;
@@ -852,14 +852,14 @@ function laptopModel() {
   const kb = canvasTex(512, 256, (x, w, h) => { x.fillStyle = '#9aa2ad'; x.fillRect(0, 0, w, h); x.fillStyle = '#23262c';
     for (let r = 0; r < 5; r++) for (let c = 0; c < 14; c++) { x.beginPath(); x.roundRect(14 + c * 35, 12 + r * 30, 30, 25, 4); x.fill(); }
     x.beginPath(); x.roundRect(120, 165, 270, 26, 4); x.fill(); x.fillStyle = '#a9b1bb'; x.beginPath(); x.roundRect(170, 200, 170, 50, 6); x.fill(); x.strokeStyle = '#7d858f'; x.stroke(); });
-  const kbm = new T.Mesh(new T.PlaneGeometry(1.2, .78), new T.MeshStandardMaterial({ map: kb, roughness: .6 })); kbm.rotation.x = -PI / 2; kbm.position.y = .032; g.add(kbm);
+  const kbm = new T.Mesh(new T.PlaneGeometry(1.2, .78), new T.MeshStandardMaterial({ map: kb, roughness: .6 })); kbm.rotation.x = -PI / 2; kbm.position.y = .05; kbm.material.polygonOffset = true; kbm.material.polygonOffsetFactor = -4; kbm.material.polygonOffsetUnits = -4; g.add(kbm);
   const lid = new T.Group(); lid.position.set(0, .03, -.43); lid.rotation.x = -.32; g.add(lid);
   const l = rbox(1.3, .86, .035, .05, al); l.position.y = .43; lid.add(l);
   const scr = canvasTex(512, 320, (x, w, h) => { x.fillStyle = '#0d1420'; x.fillRect(0, 0, w, h); x.fillStyle = '#1b2840'; x.fillRect(0, 0, w, 28);
     ['#ff5f57', '#febc2e', '#28c840'].forEach((c, i) => { x.fillStyle = c; x.beginPath(); x.arc(18 + i * 18, 14, 6, 0, 7); x.fill(); });
     x.strokeStyle = '#35d0e6'; x.lineWidth = 5; x.beginPath(); [0, 30, 22, 60, 48, 90, 80, 120].forEach((v, i) => { const px = 30 + i * 60, py = 270 - v * 1.8; i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.stroke();
     for (let i = 0; i < 6; i++) { x.fillStyle = i % 2 ? '#ffc845' : '#6c5ce7'; x.fillRect(40 + i * 75, 70, 50, 40); } });
-  const s2 = new T.Mesh(new T.PlaneGeometry(1.2, .76), new T.MeshBasicMaterial({ map: scr })); s2.position.set(0, .43, .02); lid.add(s2);
+  const s2 = new T.Mesh(new T.PlaneGeometry(1.2, .76), new T.MeshBasicMaterial({ map: scr, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })); s2.position.set(0, .43, .04); lid.add(s2);
   return g;
 }
 let DRUM;
@@ -868,14 +868,14 @@ function washerModel() {
   g.add(rbox(.9, 1.05, .82, .08, white));
   const panel = rbox(.86, .18, .04, .03, std(0x2a2f38, 0, 0, { roughness: .4 })); panel.position.set(0, .41, .41); g.add(panel);
   const knob = new T.Mesh(new T.CylinderGeometry(.06, .06, .05, 24), chrome); knob.rotation.x = PI / 2; knob.position.set(.27, .41, .44); g.add(knob);
-  const disp = new T.Mesh(new T.PlaneGeometry(.22, .08), basic({ color: 0x35d0e6 })); disp.position.set(-.08, .41, .432); g.add(disp);
+  const disp = new T.Mesh(new T.PlaneGeometry(.22, .08), basic({ color: 0x35d0e6 })); disp.position.set(-.08, .41, .445); g.add(disp);
   for (const x of [-.34, -.27]) { const bt = new T.Mesh(new T.CylinderGeometry(.018, .018, .02, 12), std(0xffc845, 0xffa000, .6)); bt.rotation.x = PI / 2; bt.position.set(x, .41, .435); g.add(bt); }
   const ring = new T.Mesh(new T.TorusGeometry(.27, .045, 16, 40), chrome); ring.position.set(0, -.08, .42); g.add(ring);
   DRUM = canvasTex(256, 256, (x, w, h) => { const gr = x.createRadialGradient(128, 128, 10, 128, 128, 128); gr.addColorStop(0, '#9fdcff'); gr.addColorStop(1, '#1d4f8a'); x.fillStyle = gr; x.fillRect(0, 0, w, h);
     for (let i = 0; i < 9; i++) { x.fillStyle = ['#ff8fa3', '#ffd166', '#ffffff', '#7ee0b0'][i % 4]; x.beginPath(); x.ellipse(128 + Math.cos(i) * 70, 128 + Math.sin(i * 1.7) * 70, 34, 18, i, 0, 7); x.fill(); } });
   DRUM.center.set(.5, .5);
-  const gl = new T.Mesh(new T.CircleGeometry(.25, 40), new T.MeshBasicMaterial({ map: DRUM })); gl.position.set(0, -.08, .415); g.add(gl);
-  const shine = new T.Mesh(new T.CircleGeometry(.25, 40, PI * .55, PI * .4), basic({ color: 0xffffff, opacity: .25 })); shine.position.set(0, -.08, .418); g.add(shine);
+  const gl = new T.Mesh(new T.CircleGeometry(.25, 40), new T.MeshBasicMaterial({ map: DRUM })); gl.position.set(0, -.08, .43); g.add(gl);
+  const shine = new T.Mesh(new T.CircleGeometry(.25, 40, PI * .55, PI * .4), basic({ color: 0xffffff, opacity: .25 })); shine.position.set(0, -.08, .44); g.add(shine);
   return g;
 }
 function fuelNozzle() {
