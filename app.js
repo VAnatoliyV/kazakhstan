@@ -105,7 +105,7 @@ function growTube(tags, mesh, delay, dur, extra = {}) {
 }
 function updateReg(dt) {
   for (const it of REG) {
-    const k = it.tgt > it.cur ? 2.4 : 3.6;
+    const k = it.tgt > it.cur ? 2.4 : 10;
     it.cur += (it.tgt - it.cur) * Math.min(1, dt * k);
     if (Math.abs(it.cur - it.tgt) < .003) it.cur = it.tgt;
     it.obj.visible = it.cur > .003;
