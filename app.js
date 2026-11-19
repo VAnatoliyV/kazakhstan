@@ -1587,8 +1587,8 @@ const SLIDES = [
     <path d="M106 138 Q120 150 134 138" class="smile"/>
     <path d="M92 104 L120 62 L148 104 Z" class="kalpak"/><path d="M90 104 Q120 112 150 104 L150 96 Q120 104 90 96 Z" class="brim"/>
     <path d="M106 90 l6 -8 l6 8 l6 -8 l6 8" class="kpat"/>
-  </g></svg><div class="mcap"><div class="mt">Me after zero questions</div><div class="ms">beshbarmak.exe has started dancing</div></div></div>`
-      + `<div class="a" style="--d:1s;position:absolute;left:50vw;bottom:9vh;width:12vw;text-align:center"><img src="img/qr.svg" alt="QR code to open the slides" style="width:100%;display:block;border-radius:.8vw;box-shadow:0 0 30px rgba(120,200,255,.35)"><div style="margin-top:1.2vh;font-size:1vw;color:var(--gold);font-weight:700">Scan to open the slides</div><div style="font-size:.8vw;opacity:.7">vanatoliyv.github.io/kazakhstan</div></div>`
+  </g></svg><div class="mcap"><div class="mt">Me after zero questions</div><div class="ms">Beshbarmak: the traditional national dish of Kazakhstan</div></div></div>`
+      + `<div class="a" style="--d:1s;position:absolute;left:53vw;bottom:9vh;width:12vw;text-align:center"><img src="img/qr.svg" alt="QR code to open the slides" style="width:100%;display:block;border-radius:.8vw;box-shadow:0 0 30px rgba(120,200,255,.35)"><div style="margin-top:1.2vh;font-size:1vw;color:var(--gold);font-weight:700">Scan to open the slides</div><div style="font-size:.8vw;opacity:.7">vanatoliyv.github.io/kazakhstan</div></div>`
   }
 ];
 
