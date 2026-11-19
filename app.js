@@ -403,24 +403,45 @@ const CH = W.chart;
 }
 const std = (color, emissive = 0x000000, ei = 0, o = {}) => new T.MeshStandardMaterial(Object.assign({ color, emissive, emissiveIntensity: ei, roughness: .4, metalness: .25 }, o));
 const addMat = color => new T.MeshBasicMaterial({ color, transparent: true, blending: T.AdditiveBlending, depthWrite: false });
-// inflation bars
+// inflation line chart
 const BARS = [['2024', 8.6], ['Dec 2025', 12.3], ['Aug 2026', 9.8], ['Sep 2026', 9.3], ['Target', 5.0]], BK = .38;
-const barObjs = [];
+const IPTS = BARS.map(([l, v], i) => V(-4.6 + i * 2.3, v * BK, 0));
+const IPROG = { v: 0 };
 {
   const g = new T.Group(); CH.add(g);
-  BARS.forEach(([lab, v], i) => {
-    const geo = new T.BoxGeometry(1.25, 1, 1.25); geo.translate(0, .5, 0);
-    const col = i === 4 ? 0x35d0e6 : i === 1 ? 0xff3b47 : 0xa8343a;
-    const m = new T.Mesh(geo, std(col, col, i === 1 ? .55 : i === 4 ? .7 : .12));
-    m.position.x = -4.4 + i * 2.2; m.scale.y = .001; g.add(m); barObjs.push(m);
-    const cap = new T.Mesh(new T.BoxGeometry(1.27, .03, 1.27), addMat(i === 4 ? 0x7ff0ff : 0xff8088)); m.add(cap); cap.position.y = 1;
+  const real = IPTS.slice(0, 4);
+  const curve = new T.CatmullRomCurve3(real, false, 'centripetal');
+  const line = tube(real, .06, flowMat(0xff4a55, { dash: 8, speed: .6, int: 2.2, base: .55 }), 200); g.add(line);
+  // area under curve
+  const N = 120, pos = [], col = [], idx = [];
+  for (let i = 0; i <= N; i++) { const p = curve.getPoint(i / N); pos.push(p.x, p.y, -.02, p.x, 0, -.02); col.push(1, .25, .3, .05, .02, .04); if (i < N) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); } }
+  const ag = new T.BufferGeometry(); ag.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); ag.setAttribute('color', new T.Float32BufferAttribute(col, 3)); ag.setIndex(idx);
+  const area = new T.Mesh(ag, new T.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: .55, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide })); g.add(area);
+  // drop lines + dots
+  const dots = IPTS.map((p, i) => {
+    const tgt = i === 4, c = tgt ? 0x35d0e6 : i === 1 ? 0xff3b47 : 0xff7a80;
+    const d = new T.Group(); d.position.copy(p); g.add(d);
+    d.add(new T.Mesh(new T.SphereGeometry(i === 1 ? .2 : .15, 24, 16), std(c, c, 1.2)));
+    const h = sprite(c, i === 1 ? 1.3 : .8, .8); d.add(h);
+    const dl = new T.Mesh(new T.CylinderGeometry(.012, .012, p.y, 6), addMat(c)); dl.material.opacity = .35; dl.position.y = -p.y / 2; d.add(dl);
+    return { d, h };
   });
-  const tl = new T.Mesh(new T.BoxGeometry(11.6, .035, .035), addMat(0x35d0e6)); tl.position.set(0, 5 * BK, .7); g.add(tl);
-  const tp = new T.Mesh(new T.PlaneGeometry(11.6, 1.6), addMat(0x0b4450)); tp.rotation.x = -PI / 2; tp.position.set(0, 5 * BK, 0); tp.material.opacity = .35; g.add(tp);
+  // dashed path to target
+  const dash = tube([IPTS[3], IPTS[3].clone().lerp(IPTS[4], .5).add(V(0, .4, 0)), IPTS[4]], .04, flowMat(0x35d0e6, { dash: 14, speed: -1.2, int: 2, base: 0 }), 80); g.add(dash);
+  // target safe zone
+  const zone = new T.Mesh(new T.PlaneGeometry(11.6, 5 * BK), new T.MeshBasicMaterial({ color: 0x35d0e6, transparent: true, opacity: .07, blending: T.AdditiveBlending, depthWrite: false })); zone.position.set(0, 5 * BK / 2, -.05); g.add(zone);
+  const tl = new T.Mesh(new T.BoxGeometry(11.6, .02, .02), addMat(0x35d0e6)); tl.position.set(0, 5 * BK, -.04); tl.material.opacity = .6; g.add(tl);
   const it = reg('bars', g);
   it.update = t => {
-    barObjs.forEach((m, i) => { const e = ease(clamp((t - .5 - i * .38) / 1.2, 0, 1)); m.scale.y = Math.max(.001, BARS[i][1] * BK * e); });
-    tl.scale.x = ease(clamp((t - 2.6) / 1.2, 0, 1)) + .001; tp.scale.x = tl.scale.x;
+    const pr = ease(clamp((t - .5) / 2.2, 0, 1)); IPROG.v = pr;
+    line.material.uniforms.uP.value = pr;
+    const cut = Math.floor(pr * N); ag.setDrawRange(0, cut * 6);
+    dots.forEach(({ d, h }, i) => {
+      const at = i < 4 ? i / 3 : 2; const on = i < 4 ? sstep(at - .02, at + .05, pr) : sstep(3.2, 3.6, t);
+      d.scale.setScalar(Math.max(.001, on)); if (i === 1) h.scale.setScalar(1.3 * (1 + .25 * Math.sin(t * 4)));
+    });
+    dash.material.uniforms.uP.value = ease(clamp((t - 2.8) / .8, 0, 1));
+    zone.scale.x = tl.scale.x = ease(clamp((t - 2.6) / 1, 0, 1)) + .001;
   };
 }
 // ---- 3D icon builders
@@ -773,55 +794,140 @@ function tornTex() {
   const id = g.getImageData(0, 0, 512, 512), d = id.data; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 0 && d[i] < 40) { const n = (Math.random() - .5) * 14; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
   g.putImageData(id, 0, 0); return new T.CanvasTexture(c);
 }
+function rrect(w, h, r) { const s = new T.Shape(), x = -w / 2, y = -h / 2; s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r); s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h); s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r); s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y); return s; }
+function rbox(w, h, d, r, mat) { const bv = Math.min(r, d / 2) * .6; const g = new T.ExtrudeGeometry(rrect(w - 2 * bv, h - 2 * bv, Math.max(.001, r - bv)), { depth: d - 2 * bv, bevelEnabled: true, bevelSize: bv, bevelThickness: bv, bevelSegments: 3, curveSegments: 8 }); g.center(); return new T.Mesh(g, mat); }
+function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.anisotropy = 4; return t; }
 function carModel() {
-  const g = new T.Group(), paint = std(0xe8434a, 0, 0, { metalness: .6, roughness: .3 }), dark = std(0x15161c), glass = std(0x9fd8ff, 0x35d0e6, .3, { metalness: .2, roughness: .1 });
-  const b = new T.Mesh(new T.BoxGeometry(1.6, .38, .75), paint); b.position.y = .35; g.add(b);
-  const cab = new T.Mesh(new T.BoxGeometry(.85, .32, .68), glass); cab.position.set(-.08, .69, 0); g.add(cab);
-  for (const x of [-.52, .52]) for (const z of [-.36, .36]) { const w = new T.Mesh(new T.CylinderGeometry(.18, .18, .12, 20), dark); w.rotation.x = PI / 2; w.position.set(x, .18, z); g.add(w); }
-  return g;
+  const g = new T.Group(), paint = std(0xd8323a, 0x3a0004, .2, { metalness: .55, roughness: .22 }), dark = std(0x111216, 0, 0, { roughness: .8 }), glass = std(0x0e1a26, 0x2a6a9a, .25, { metalness: .6, roughness: .08 }), chrome = std(0xdfe5ea, 0, 0, { metalness: 1, roughness: .2 });
+  const sh = new T.Shape(); sh.moveTo(-.85, .15); sh.lineTo(.85, .15); sh.quadraticCurveTo(.92, .15, .92, .3); sh.lineTo(.9, .42); sh.quadraticCurveTo(.86, .5, .6, .52); sh.lineTo(.32, .55); sh.quadraticCurveTo(.15, .82, -.1, .84); sh.lineTo(-.45, .84); sh.quadraticCurveTo(-.66, .82, -.78, .58); sh.quadraticCurveTo(-.9, .52, -.9, .4); sh.lineTo(-.9, .25); sh.quadraticCurveTo(-.9, .15, -.85, .15);
+  const body = new T.Mesh(new T.ExtrudeGeometry(sh, { depth: .62, bevelEnabled: true, bevelSize: .05, bevelThickness: .06, bevelSegments: 4, curveSegments: 16 }), paint); body.position.z = -.31; g.add(body);
+  const win = new T.Shape(); win.moveTo(.26, .56); win.quadraticCurveTo(.12, .78, -.1, .79); win.lineTo(-.44, .79); win.quadraticCurveTo(-.6, .77, -.7, .58); win.lineTo(.26, .56);
+  for (const z of [.38, -.38]) { const w = new T.Mesh(new T.ShapeGeometry(win), glass); w.position.z = z; if (z < 0) w.rotation.y = PI, w.position.x = 0, w.scale.x = -1; g.add(w); }
+  const ws = new T.Mesh(new T.PlaneGeometry(.62, .34), glass); ws.position.set(.3, .68, 0); ws.rotation.y = PI / 2; ws.rotation.x = 0; ws.rotateX(-.95); g.add(ws);
+  for (const x of [-.52, .55]) for (const z of [-.36, .36]) {
+    const tire = new T.Mesh(new T.TorusGeometry(.14, .07, 12, 28), dark); tire.position.set(x, .2, z); g.add(tire);
+    const rim = new T.Mesh(new T.CylinderGeometry(.12, .12, .1, 20), chrome); rim.rotation.x = PI / 2; rim.position.set(x, .2, z); g.add(rim);
+    const hub = new T.Mesh(new T.CylinderGeometry(.04, .04, .12, 10), dark); hub.rotation.x = PI / 2; hub.position.set(x, .2, z); g.add(hub);
+  }
+  for (const z of [-.22, .22]) {
+    const hl = new T.Mesh(new T.BoxGeometry(.04, .07, .16), std(0xfff6d0, 0xfff1b0, 1.4)); hl.position.set(.97, .4, z); g.add(hl);
+    const tl = new T.Mesh(new T.BoxGeometry(.04, .07, .14), std(0xff2030, 0xff1020, 1.2)); tl.position.set(-.97, .44, z); g.add(tl);
+  }
+  const grill = new T.Mesh(new T.BoxGeometry(.03, .08, .4), dark); grill.position.set(.97, .27, 0); g.add(grill);
+  g.position.y = -.2; const w = new T.Group(); w.add(g); return w;
 }
 function phoneModel() {
   const g = new T.Group();
-  g.add(new T.Mesh(new T.BoxGeometry(.62, 1.2, .07), std(0x1b1c22, 0, 0, { metalness: .8, roughness: .3 })));
-  const s = new T.Mesh(new T.PlaneGeometry(.54, 1.08), basic({ color: 0x5b8cff })); s.position.z = .04; g.add(s);
+  g.add(rbox(.62, 1.24, .08, .1, std(0x2a2c33, 0, 0, { metalness: .9, roughness: .25 })));
+  const scr = canvasTex(256, 512, (x, w, h) => {
+    const gr = x.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#4a3bd6'); gr.addColorStop(1, '#16a3c9'); x.fillStyle = gr; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#fff'; x.font = 'bold 54px Arial'; x.textAlign = 'center'; x.fillText('9:41', w / 2, 110);
+    const cols = ['#ff5a5f', '#ffc845', '#35d0e6', '#7ee07e', '#ff8fd1', '#ffffff', '#9a8cff', '#ffa94d', '#4dd4a4', '#e4e4e4', '#ff6b6b', '#6bc1ff'];
+    for (let i = 0; i < 12; i++) { const cx = 48 + (i % 4) * 54, cy = 180 + Math.floor(i / 4) * 70; x.fillStyle = cols[i]; x.beginPath(); x.roundRect(cx - 20, cy - 20, 40, 40, 10); x.fill(); }
+    x.fillStyle = 'rgba(255,255,255,.25)'; x.beginPath(); x.roundRect(20, 420, w - 40, 60, 24); x.fill();
+  });
+  const sc = new T.Mesh(new T.ShapeGeometry(rrect(.56, 1.18, .08)), new T.MeshBasicMaterial({ map: scr })); sc.position.z = .042;
+  const uv = sc.geometry.attributes.uv, pos = sc.geometry.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, pos.getX(i) / .56 + .5, pos.getY(i) / 1.18 + .5); g.add(sc);
+  const notch = new T.Mesh(new T.ShapeGeometry(rrect(.16, .04, .02)), basic({ color: 0x000000 })); notch.position.set(0, .54, .044); g.add(notch);
+  const cam = rbox(.2, .2, .03, .05, std(0x3a3d46, 0, 0, { metalness: .8, roughness: .3 })); cam.position.set(-.16, .44, -.05); g.add(cam);
+  for (const [dx, dy] of [[-.04, .04], [.04, -.04]]) { const l = new T.Mesh(new T.CylinderGeometry(.03, .03, .03, 16), std(0x05070a, 0x203050, .3, { metalness: 1, roughness: .05 })); l.rotation.x = PI / 2; l.position.set(-.16 + dx, .44 + dy, -.07); g.add(l); }
   return g;
 }
 function pillModel() {
-  const g = new T.Group(), a = std(0xff5a5f, 0, 0, { roughness: .25 }), b = std(0xf2f2f2, 0, 0, { roughness: .25 });
-  const c1 = new T.Mesh(new T.CylinderGeometry(.22, .22, .38, 24), a); c1.position.y = .19; g.add(c1);
-  const c2 = new T.Mesh(new T.CylinderGeometry(.22, .22, .38, 24), b); c2.position.y = -.19; g.add(c2);
-  const h1 = new T.Mesh(new T.SphereGeometry(.22, 24, 12, 0, PI * 2, 0, PI / 2), a); h1.position.y = .38; g.add(h1);
-  const h2 = new T.Mesh(new T.SphereGeometry(.22, 24, 12, 0, PI * 2, PI / 2, PI / 2), b); h2.position.y = -.38; g.add(h2);
+  const g = new T.Group(), a = std(0xff4a52, 0x400008, .2, { roughness: .12, metalness: .1 }), b = std(0xf6f6f6, 0, 0, { roughness: .12 });
+  const c1 = new T.Mesh(new T.CylinderGeometry(.22, .22, .38, 32), a); c1.position.y = .19; g.add(c1);
+  const c2 = new T.Mesh(new T.CylinderGeometry(.215, .215, .38, 32), b); c2.position.y = -.19; g.add(c2);
+  const h1 = new T.Mesh(new T.SphereGeometry(.22, 32, 16, 0, PI * 2, 0, PI / 2), a); h1.position.y = .38; g.add(h1);
+  const h2 = new T.Mesh(new T.SphereGeometry(.215, 32, 16, 0, PI * 2, PI / 2, PI / 2), b); h2.position.y = -.38; g.add(h2);
+  const ring = new T.Mesh(new T.TorusGeometry(.222, .012, 8, 32), std(0xd9343c)); ring.rotation.x = PI / 2; g.add(ring);
+  const p2 = new T.Group(); p2.position.set(.45, -.35, .1); p2.rotation.z = -1.1; g.add(p2);
+  const t = new T.Mesh(new T.CylinderGeometry(.18, .18, .09, 32), std(0xffffff, 0, 0, { roughness: .35 })); t.rotation.x = PI / 2; p2.add(t);
+  const groove = new T.Mesh(new T.BoxGeometry(.3, .015, .02), std(0xdddddd)); groove.position.z = .05; p2.add(groove);
   g.rotation.z = .7; return g;
 }
 function laptopModel() {
-  const g = new T.Group(), al = std(0xc7ccd3, 0, 0, { metalness: .8, roughness: .3 });
-  const base = new T.Mesh(new T.BoxGeometry(1.2, .05, .8), al); g.add(base);
-  const lid = new T.Group(); lid.position.set(0, .02, -.4); lid.rotation.x = -.35; g.add(lid);
-  const l = new T.Mesh(new T.BoxGeometry(1.2, .8, .04), al); l.position.y = .4; lid.add(l);
-  const s = new T.Mesh(new T.PlaneGeometry(1.08, .7), basic({ color: 0x35d0e6 })); s.position.set(0, .4, .025); lid.add(s);
+  const g = new T.Group(), al = std(0xb9c0c9, 0, 0, { metalness: .85, roughness: .28 });
+  const base = rbox(1.3, .06, .88, .05, al); base.rotation.x = PI / 2; base.geometry.rotateX(0); g.add(base);
+  base.rotation.x = 0; base.geometry = (() => { const m = rbox(1.3, .88, .06, .05, al).geometry; m.rotateX(-PI / 2); return m; })();
+  const kb = canvasTex(512, 256, (x, w, h) => { x.fillStyle = '#9aa2ad'; x.fillRect(0, 0, w, h); x.fillStyle = '#23262c';
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 14; c++) { x.beginPath(); x.roundRect(14 + c * 35, 12 + r * 30, 30, 25, 4); x.fill(); }
+    x.beginPath(); x.roundRect(120, 165, 270, 26, 4); x.fill(); x.fillStyle = '#a9b1bb'; x.beginPath(); x.roundRect(170, 200, 170, 50, 6); x.fill(); x.strokeStyle = '#7d858f'; x.stroke(); });
+  const kbm = new T.Mesh(new T.PlaneGeometry(1.2, .78), new T.MeshStandardMaterial({ map: kb, roughness: .6 })); kbm.rotation.x = -PI / 2; kbm.position.y = .032; g.add(kbm);
+  const lid = new T.Group(); lid.position.set(0, .03, -.43); lid.rotation.x = -.32; g.add(lid);
+  const l = rbox(1.3, .86, .035, .05, al); l.position.y = .43; lid.add(l);
+  const scr = canvasTex(512, 320, (x, w, h) => { x.fillStyle = '#0d1420'; x.fillRect(0, 0, w, h); x.fillStyle = '#1b2840'; x.fillRect(0, 0, w, 28);
+    ['#ff5f57', '#febc2e', '#28c840'].forEach((c, i) => { x.fillStyle = c; x.beginPath(); x.arc(18 + i * 18, 14, 6, 0, 7); x.fill(); });
+    x.strokeStyle = '#35d0e6'; x.lineWidth = 5; x.beginPath(); [0, 30, 22, 60, 48, 90, 80, 120].forEach((v, i) => { const px = 30 + i * 60, py = 270 - v * 1.8; i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.stroke();
+    for (let i = 0; i < 6; i++) { x.fillStyle = i % 2 ? '#ffc845' : '#6c5ce7'; x.fillRect(40 + i * 75, 70, 50, 40); } });
+  const s2 = new T.Mesh(new T.PlaneGeometry(1.2, .76), new T.MeshBasicMaterial({ map: scr })); s2.position.set(0, .43, .02); lid.add(s2);
   return g;
 }
+let DRUM;
 function washerModel() {
-  const g = new T.Group();
-  g.add(new T.Mesh(new T.BoxGeometry(.9, 1, .8), std(0xeef0f4, 0, 0, { roughness: .4 })));
-  const d = new T.Mesh(new T.TorusGeometry(.26, .05, 10, 32), std(0x9aa3ad, 0, 0, { metalness: .8 })); d.position.set(0, -.05, .41); g.add(d);
-  const gl = new T.Mesh(new T.CircleGeometry(.24, 32), basic({ color: 0x2a5ea8, opacity: .9 })); gl.position.set(0, -.05, .405); g.add(gl);
+  const g = new T.Group(), white = std(0xf1f3f6, 0, 0, { roughness: .35 }), chrome = std(0xd5dbe2, 0, 0, { metalness: 1, roughness: .2 });
+  g.add(rbox(.9, 1.05, .82, .08, white));
+  const panel = rbox(.86, .18, .04, .03, std(0x2a2f38, 0, 0, { roughness: .4 })); panel.position.set(0, .41, .41); g.add(panel);
+  const knob = new T.Mesh(new T.CylinderGeometry(.06, .06, .05, 24), chrome); knob.rotation.x = PI / 2; knob.position.set(.27, .41, .44); g.add(knob);
+  const disp = new T.Mesh(new T.PlaneGeometry(.22, .08), basic({ color: 0x35d0e6 })); disp.position.set(-.08, .41, .432); g.add(disp);
+  for (const x of [-.34, -.27]) { const bt = new T.Mesh(new T.CylinderGeometry(.018, .018, .02, 12), std(0xffc845, 0xffa000, .6)); bt.rotation.x = PI / 2; bt.position.set(x, .41, .435); g.add(bt); }
+  const ring = new T.Mesh(new T.TorusGeometry(.27, .045, 16, 40), chrome); ring.position.set(0, -.08, .42); g.add(ring);
+  DRUM = canvasTex(256, 256, (x, w, h) => { const gr = x.createRadialGradient(128, 128, 10, 128, 128, 128); gr.addColorStop(0, '#9fdcff'); gr.addColorStop(1, '#1d4f8a'); x.fillStyle = gr; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 9; i++) { x.fillStyle = ['#ff8fa3', '#ffd166', '#ffffff', '#7ee0b0'][i % 4]; x.beginPath(); x.ellipse(128 + Math.cos(i) * 70, 128 + Math.sin(i * 1.7) * 70, 34, 18, i, 0, 7); x.fill(); } });
+  DRUM.center.set(.5, .5);
+  const gl = new T.Mesh(new T.CircleGeometry(.25, 40), new T.MeshBasicMaterial({ map: DRUM })); gl.position.set(0, -.08, .415); g.add(gl);
+  const shine = new T.Mesh(new T.CircleGeometry(.25, 40, PI * .55, PI * .4), basic({ color: 0xffffff, opacity: .25 })); shine.position.set(0, -.08, .418); g.add(shine);
   return g;
+}
+function fuelNozzle() {
+  const g = new T.Group(), body = std(0x1f8a3b, 0, 0, { roughness: .45, metalness: .2 }), black = std(0x15161a, 0, 0, { roughness: .6 }), metal = std(0xcfd6dd, 0, 0, { metalness: 1, roughness: .25 });
+  const handle = rbox(.18, .62, .14, .05, black); handle.position.set(0, 0, 0); handle.rotation.z = -.35; g.add(handle);
+  const head = rbox(.62, .26, .2, .07, body); head.position.set(.3, .3, 0); g.add(head);
+  const guard = new T.Mesh(new T.TorusGeometry(.17, .025, 8, 24, PI), metal); guard.rotation.z = PI; guard.position.set(.22, .1, 0); g.add(guard);
+  const trig = new T.Mesh(new T.BoxGeometry(.04, .16, .06), metal); trig.position.set(.2, .1, 0); trig.rotation.z = .3; g.add(trig);
+  const spout = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([V(.58, .32, 0), V(.82, .32, 0), V(.98, .22, 0), V(1.08, .02, 0)]), 20, .035, 10), metal); g.add(spout);
+  const hose = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([V(-.08, -.3, 0), V(-.2, -.7, 0), V(-.6, -.9, 0), V(-1.6, -.6, 0), V(-3, .4, 0)]), 40, .055, 10), black); g.add(hose);
+  g.userData.tip = V(1.08, 0, 0); return g;
 }
 {
   const g = new T.Group(); CH.add(g);
   const torn = new T.Mesh(new T.PlaneGeometry(10, 10), basic({ map: tornTex() })); torn.position.set(-4.6, 2.4, -1.5); g.add(torn);
-  const bar = barrel(); bar.children[0].material = std(0x5a6a7e, 0x1a2230, .4, { metalness: .5, roughness: .35 }); bar.scale.setScalar(1.7); bar.position.set(-3.6, 1.3, 0); g.add(bar);
-  const items = [[carModel(), 2.3, .8, 1.1], [phoneModel(), 4.6, 3.3, .9], [pillModel(), 5.6, 1.2, 1.2], [laptopModel(), 2.6, 3.3, 1], [washerModel(), 4.3, .9, .9]];
+  // open oil barrel
+  const bar = new T.Group(); g.add(bar);
+  const steel = std(0x3d6fa8, 0x0a1830, .3, { metalness: .55, roughness: .35, side: T.DoubleSide }), gold = std(0xffc845, 0xb87a10, .3, { metalness: .9, roughness: .25 });
+  const R = .62, H = 1.55;
+  const shell = new T.Mesh(new T.CylinderGeometry(R, R, H, 48, 1, true), steel); shell.position.y = H / 2; bar.add(shell);
+  const bottom = new T.Mesh(new T.CircleGeometry(R, 48), std(0x1a1d22)); bottom.rotation.x = -PI / 2; bottom.position.y = .01; bar.add(bottom);
+  for (const y of [.02, H * .33, H * .66, H - .02]) { const t = new T.Mesh(new T.TorusGeometry(R + .01, .03, 8, 48), gold); t.rotation.x = PI / 2; t.position.y = y; bar.add(t); }
+  const label = new T.Mesh(new T.CylinderGeometry(R + .004, R + .004, .34, 48, 1, true, -.7, 1.4), new T.MeshStandardMaterial({ map: canvasTex(256, 64, (x, w, h) => { x.fillStyle = '#ffc845'; x.fillRect(0, 0, w, h); x.fillStyle = '#17112a'; x.font = 'bold 38px Arial'; x.textAlign = 'center'; x.fillText('CRUDE OIL', w / 2, 46); }), roughness: .5 }));
+  label.position.y = H * .5; bar.add(label);
+  const oil = new T.Mesh(new T.CircleGeometry(R - .01, 48), std(0x050505, 0x2a1800, .3, { metalness: .9, roughness: .05 })); oil.rotation.x = -PI / 2; bar.add(oil);
+  const nozzle = fuelNozzle(); g.add(nozzle);
+  const stream = new T.Mesh(new T.CylinderGeometry(.035, .03, 1, 12), std(0x0a0a0a, 0x3a2400, .4, { metalness: .9, roughness: .05 })); stream.geometry.translate(0, -.5, 0); g.add(stream);
+  const splash = []; for (let i = 0; i < 6; i++) { const d = new T.Mesh(new T.SphereGeometry(.035, 8, 6), stream.material); g.add(d); splash.push(d); }
+  const BX = -3.6, BY = .35;
+  const items = [[carModel(), 2.3, .9, 1.15], [phoneModel(), 4.6, 3.2, .95], [pillModel(), 5.7, 1.3, 1.15], [laptopModel(), 2.5, 3.0, 1.0], [washerModel(), 4.3, .95, .95]];
   items.forEach(([m, x, y, s]) => { m.position.set(x, y, 0); m.scale.setScalar(s); g.add(m); m.userData.y = y; });
   const it = reg('sellbuy', g);
   it.update = t => {
     torn.position.x = -4.6 - 6 * (1 - ease(clamp(t / 1.2, 0, 1)));
-    const e1 = ease(clamp((t - .6) / .9, 0, 1)); bar.scale.setScalar(1.7 * Math.max(.001, e1)); bar.rotation.y = t * .4;
+    // fall with bounce
+    const u = clamp((t - .5) / .7, 0, 1); let y = BY + 7 * (1 - u * u);
+    if (u >= 1) { const b = t - 1.2; y = BY + Math.abs(Math.sin(b * 9)) * .35 * Math.exp(-b * 5); }
+    bar.position.set(BX, y, 0); bar.rotation.set(.32, .5, 0);
+    const sq = u >= 1 ? 1 - .12 * Math.exp(-(t - 1.2) * 9) * Math.abs(Math.cos((t - 1.2) * 9)) : 1; bar.scale.set(1 / Math.sqrt(sq), sq, 1 / Math.sqrt(sq));
+    // nozzle comes in and pours
+    const n = ease(clamp((t - 1.8) / .8, 0, 1)), tip = V(BX + .05, BY + H + .55, .25);
+    nozzle.position.set(tip.x - 1.08 - (1 - n) * 3, tip.y - (1 - n) * 1.5, tip.z); nozzle.rotation.z = -.15 + (1 - n) * .4;
+    const pour = t > 2.6 && t < 7.2; const lvl = clamp((t - 2.7) / 4.2, 0, 1);
+    const surf = .05 + lvl * (H - .2);
+    oil.position.y = surf; oil.visible = lvl > .01;
+    const top = nozzle.position.clone().add(V(1.08, 0, 0).applyAxisAngle(V(0, 0, 1), nozzle.rotation.z)), bot = bar.localToWorld(V(0, surf, 0));
+    stream.visible = pour; stream.position.copy(top); stream.scale.y = Math.max(.01, top.y - bot.y) * clamp((t - 2.6) / .2, 0, 1);
+    splash.forEach((d, i) => { const q = (t * 2 + i / 6) % 1, a = i / 6 * PI * 2; d.visible = pour; d.position.set(bot.x + Math.cos(a) * q * .2, bot.y + Math.sin(q * PI) * .15, bot.z + Math.sin(a) * q * .2); d.scale.setScalar(1 - q); });
+    if (DRUM) DRUM.rotation = t * 3;
     items.forEach(([m], i) => {
       const e = ease(clamp((t - 1.6 - i * .25) / .7, 0, 1)); m.scale.setScalar(Math.max(.001, e) * items[i][3]);
-      m.position.y = m.userData.y + .1 * Math.sin(t * 1.3 + i); m.rotation.y = .5 * Math.sin(t * .6 + i);
+      m.position.y = m.userData.y + .08 * Math.sin(t * 1.3 + i); m.rotation.y = -.35 + .4 * Math.sin(t * .5 + i);
     });
   };
 }
@@ -972,28 +1078,60 @@ function bearModel() {
 }
 
 // --- slide: the three whales (ownership pies)
-const PIES = [['Tengiz', [20, 50, 25, 5], -4.6], ['Kashagan', [16.88, 16.81, 16.81, 16.81, 16.81, 8.33, 7.56], 0], ['Karachaganak', [10, 29.25, 29.25, 18, 13.5], 4.6]];
-const PIECOL = [0x5b3fc4, 0x7a5ad8, 0x41308f, 0x8d74d6, 0x4e3aa8, 0x6a4fc9];
-function pieGroup(shares) {
-  const g = new T.Group(); const tot = shares.reduce((a, b) => a + b, 0); let a0 = PI / 2;
-  shares.forEach((s, i) => {
-    const ang = s / tot * PI * 2, sh = new T.Shape(); sh.moveTo(0, 0); sh.absarc(0, 0, 1.45, a0, a0 + ang, false); sh.lineTo(0, 0);
-    const kz = i === 0;
-    const geo = new T.ExtrudeGeometry(sh, { depth: kz ? .5 : .3, bevelEnabled: true, bevelSize: .02, bevelThickness: .02, bevelSegments: 1, curveSegments: 32 });
-    const m = new T.Mesh(geo, kz ? std(0xffc845, 0xffa514, .45, { metalness: .5, roughness: .3 }) : std(PIECOL[i % PIECOL.length], 0, 0, { roughness: .85, metalness: 0 }));
-    m.userData.mid = a0 + ang / 2; m.userData.kz = kz; g.add(m); a0 += ang;
+const PIES = [['Tengiz', [20, 50, 25, 5], -4.9], ['Kashagan', [16.88, 16.81, 16.81, 16.81, 16.81, 8.33, 7.56], 0], ['Karachaganak', [10, 29.25, 29.25, 18, 13.5], 4.9]];
+function pieTopTex() {
+  return canvasTex(512, 512, (x, w, h) => {
+    x.fillStyle = '#7a1424'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 260; i++) { x.fillStyle = `rgba(${150 + Math.random() * 80 | 0},20,40,.6)`; x.beginPath(); x.arc(Math.random() * w, Math.random() * h, 6 + Math.random() * 10, 0, 7); x.fill(); }
+    const strip = (horiz, k) => { const g = horiz ? x.createLinearGradient(0, k - 22, 0, k + 22) : x.createLinearGradient(k - 22, 0, k + 22, 0);
+      g.addColorStop(0, '#9a5a1c'); g.addColorStop(.3, '#e9a64c'); g.addColorStop(.5, '#f6c977'); g.addColorStop(.7, '#e09a40'); g.addColorStop(1, '#8a4e18'); x.fillStyle = g;
+      horiz ? x.fillRect(0, k - 22, w, 44) : x.fillRect(k - 22, 0, 44, h); };
+    for (let k = 40; k < w; k += 86) strip(false, k);
+    for (let k = 40; k < h; k += 86) strip(true, k);
+    for (let i = 0; i < 400; i++) { x.fillStyle = `rgba(255,240,200,${Math.random() * .25})`; x.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
   });
+}
+const PIE_R = 1.35, PIE_H = .38;
+function pieModel(kzShare) {
+  const g = new T.Group(), tex = pieTopTex(); tex.repeat.set(1 / (2 * PIE_R), 1 / (2 * PIE_R)); tex.offset.set(.5, .5); tex.wrapS = tex.wrapT = T.RepeatWrapping;
+  const top = new T.MeshStandardMaterial({ map: tex, roughness: .55 }), fill = std(0x8c1a2a, 0x3a0008, .3, { roughness: .4 }), crust = std(0xd18a3a, 0x3a1a00, .15, { roughness: .6 });
+  const plate = new T.Mesh(new T.CylinderGeometry(PIE_R + .35, PIE_R + .2, .06, 64), std(0xf4f4f2, 0, 0, { roughness: .25 })); plate.position.y = -.03; g.add(plate);
+  const piece = (a0, ang) => {
+    const sh = new T.Shape(); sh.moveTo(0, 0); sh.absarc(0, 0, PIE_R, a0, a0 + ang, false); sh.lineTo(0, 0);
+    const geo = new T.ExtrudeGeometry(sh, { depth: PIE_H, bevelEnabled: false, curveSegments: 48 }); geo.rotateX(-PI / 2);
+    const m = new T.Group(); m.add(new T.Mesh(geo, [top, fill]));
+    const rim = new T.Mesh(new T.TorusGeometry(PIE_R, .1, 10, 64, ang), crust); rim.rotation.x = PI / 2; rim.rotation.z = -a0 - ang; rim.position.y = PIE_H; m.add(rim);
+    const rim2 = new T.Mesh(new T.TorusGeometry(PIE_R - .02, .07, 8, 64, ang), crust); rim2.rotation.x = PI / 2; rim2.rotation.z = -a0 - ang; rim2.position.y = .05; m.add(rim2);
+    return m;
+  };
+  const ka = kzShare / 100 * PI * 2, a0 = PI / 2 - ka / 2 - PI / 2;
+  const rest = piece(a0 + ka, PI * 2 - ka); g.add(rest);
+  const slice = piece(a0, ka); g.add(slice);
+  const mid = a0 + ka / 2; slice.userData.dir = V(Math.cos(mid), 0, -Math.sin(mid));
+  const glow = sprite(0xffc845, 1.4, .0); slice.add(glow); glow.position.set(Math.cos(mid) * .7, .5, -Math.sin(mid) * .7);
+  // knife
+  const knife = new T.Group(); g.add(knife);
+  const blade = new T.Mesh(new T.BoxGeometry(1.5, .32, .02), std(0xdfe6ee, 0x8a96a3, .6, { metalness: .4, roughness: .2 })); blade.position.x = .75; knife.add(blade);
+  const handle = rbox(.75, .16, .1, .05, std(0x3a2416, 0, 0, { roughness: .5 })); handle.position.x = -.37; knife.add(handle);
+  g.userData = { slice, knife, glow, cuts: [a0, a0 + ka] };
   return g;
 }
 {
   const g = new T.Group(); CH.add(g);
-  const pies = PIES.map(([n, s, x]) => { const p = pieGroup(s); p.position.set(x, 2.1, 0); p.rotation.x = -.55; g.add(p); return p; });
+  const pies = PIES.map(([n, s, x]) => { const p = pieModel(s[0]); p.position.set(x, 1.5, 0); p.rotation.x = .42; p.userData.s = 1.22; g.add(p); return p; });
   const it = reg('pies', g);
   it.update = t => pies.forEach((p, i) => {
-    const e = ease(clamp((t - .4 - i * .45) / 1.1, 0, 1));
-    p.scale.setScalar(Math.max(.001, e)); p.rotation.z = (1 - e) * -PI * 1.5 + .08 * Math.sin(t * .7 + i);
-    const lift = sstep(2.4 + i * .3, 3.0 + i * .3, t);
-    p.children.forEach(m => { if (m.userData.kz) { const a = m.userData.mid; m.position.set(Math.cos(a) * .35 * lift, Math.sin(a) * .35 * lift, .25 * lift); } });
+    const e = ease(clamp((t - .3 - i * .3) / .9, 0, 1)); p.scale.setScalar(Math.max(.001, e) * 1.08); p.rotation.y = (1 - e) * 1.5;
+    const u = p.userData, t0 = 1.3 + i * .55;
+    const c = [0, 1].map(k => clamp((t - t0 - k * .7) / .5, 0, 1));
+    const k = c[0] < 1 ? 0 : 1, q = c[k], ang = u.cuts[k];
+    const out = t > t0 + 1.4;
+    u.knife.visible = t > t0 - .2 && !out;
+    u.knife.position.set(0, PIE_H + .2 + 1.2 * (1 - Math.sin(q * PI)) * .0 + (q < .5 ? 1 - q * 2 : (q - .5) * 2) * .9, 0);
+    u.knife.rotation.set(0, ang, 0);
+    const sl = ease(clamp((t - t0 - 1.5) / .8, 0, 1));
+    u.slice.position.copy(u.slice.userData.dir).multiplyScalar(sl * .6); u.slice.position.y = sl * .35;
+    u.glow.material.opacity = sl * .55 * (u.glow.material.opacity >= 0 ? 1 : 1);
   });
 }
 
@@ -1046,10 +1184,10 @@ lbl('m_uzen', 'map', topAt(52.8, 43.35, .6), 'Uzen', 'city', { dyn: true });
 [['Zhezkazgan · copper', 67.7, 47.8], ['Karaganda · steel', 73.1, 49.8], ['Balkhash · copper', 75.0, 46.85], ['Pavlodar · aluminium', 76.95, 52.3], ['Oskemen · zinc, titanium', 82.6, 49.95], ['South · uranium', 68.0, 44.9]]
   .forEach(([t, lo, la], i) => lbl('m_v' + i, 'map', topAt(lo, la, .3), t, 'city', { dyn: true }));
 BARS.forEach(([lab, v], i) => {
-  lbl('b_v' + i, 'chart', () => V(-4.4 + i * 2.2, barObjs[i].scale.y + .1, 0), v.toFixed(1) + '%', 'val', { dyn: true });
-  lbl('b_y' + i, 'chart', V(-4.4 + i * 2.2, 0, .7), lab, 'year');
+  lbl('b_v' + i, 'chart', IPTS[i].clone().add(V(0, .35, 0)), v.toFixed(1) + '%', 'val');
+  lbl('b_y' + i, 'chart', V(IPTS[i].x, 0, .3), lab, 'year');
 });
-lbl('b_t', 'chart', V(-6.6, 5 * BK + .25, .7), 'TARGET 5%', 'cap');
+lbl('b_t', 'chart', V(-6.1, 5 * BK + .25, 0), 'TARGET 5%', 'cap');
 ['Oil price or output swings', 'Tenge moves', 'Import prices jump', 'Inflation ↑ → rates ↑'].forEach((t, i) =>
   lbl('n' + i, 'chart', NODES[i].clone().add(V(0, -1.2, 0)), t, 'node' + (i === 3 ? ' red' : '')));
 [['1', 'Save the windfall', 'A fiscal rule that parks oil money in the National Fund'], ['2', 'Build the corridor', 'Make Kazakhstan the land bridge between China and Europe'], ['3', 'Add value at home', 'Process our metals here instead of exporting them raw']]
@@ -1224,8 +1362,8 @@ lbl('bg_r', 'chart', V(-4.2, -.05, .7), 'Beef patties from Russia', 'node');
 lbl('bg_b', 'chart', V(3.2, -.05, 1.3), 'McDonald’s Kazakhstan<br>2016 → Jan 2023', 'node');
 lbl('bg_x', 'chart', V(-.5, 3.1, 0), 'sanctions · supply cut', 'redcap');
 PIES.forEach(([n, s, x], i) => {
-  lbl('pi_n' + i, 'chart', V(x, .2, .4), n, 'stk');
-  lbl('pi_v' + i, 'chart', V(x, 4.25, 0), 'Kazakhstan: ' + s[0] + '%', 'gold');
+  lbl('pi_n' + i, 'chart', V(x, .15, 1.9), n, 'stk');
+  lbl('pi_v' + i, 'chart', V(x, 3.35, 0), 'Kazakhstan: ' + s[0] + '%', 'gold');
 });
 lbl('g_tengiz', 'globe', gl(53.38, 46.15), 'Tengiz', 'city', { occl: true });
 lbl('g_novo', 'globe', gl(37.77, 44.72), 'Novorossiysk, Russia', 'city', { occl: true });
@@ -1315,7 +1453,7 @@ const SLIDES = [
   { // 7 three whales
     shade: 'shadeT', world: 'chart', nobloom: true, cam: PAPER_CAM(V(0, 3.2, 12.5), V(0, 2.1, 0), 0, 0), show: ['pies'], labels: ['pi_n0', 'pi_n1', 'pi_n2', 'pi_v0', 'pi_v1', 'pi_v2'],
     html: box('left:4vw;top:7vh;width:60vw', kick('The three whales') + `<br>` + ttl('Whose oil is it?'))
-      + box('left:0;right:0;bottom:11vh;text-align:center', `<div class="a" style="--d:3.6s;font-size:1.5vw;font-weight:700">Our 3 biggest fields make most of our oil. <span style="color:var(--gold)">Gold</span> is the state’s share. The rest belongs to foreign companies.</div>`)
+      + box('left:0;right:0;bottom:11vh;text-align:center', `<div class="a" style="--d:3.6s;font-size:1.5vw;font-weight:700">Our 3 biggest fields make most of our oil. <span style="color:var(--gold)">The cut slice</span> is the state’s share. The rest of the pie belongs to foreign companies.</div>`)
       + src('Source: The Times of Central Asia (2026), shareholder structures of Tengiz, Kashagan and Karachaganak.')
   },
   { // 8 pipeline via Russia
@@ -1326,7 +1464,7 @@ const SLIDES = [
       + src('Source: Interfax (2026, May 25), CPC shareholders and export volumes.')
   },
   { // 9 the cost
-    shade: 'shadeT', world: 'chart', nobloom: true, cam: { p: V(-2.2, 4.6, 15.5), t: V(-1.4, 2.5, 0), shift: -.2, orbit: .01 }, show: ['bars'], labels: ['b_v0', 'b_v1', 'b_v2', 'b_v3', 'b_v4', 'b_y0', 'b_y1', 'b_y2', 'b_y3', 'b_y4', 'b_t'],
+    shade: 'shadeT', world: 'chart', nobloom: true, cam: { p: V(-2.2, 4.4, 15.5), t: V(-1.4, 3.1, 0), shift: -.2, orbit: .01 }, show: ['bars'], labels: ['b_v0', 'b_v1', 'b_v2', 'b_v3', 'b_v4', 'b_y0', 'b_y1', 'b_y2', 'b_y3', 'b_y4', 'b_t'],
     html: box('left:4vw;top:7vh;width:60vw', kick('What it costs people') + `<br>` + ttl('Growth people can’t feel'))
       + box('right:4vw;top:30vh;width:27vw', `<div class="small a" style="--d:.6s;margin-bottom:2vh;letter-spacing:.2em">ANNUAL INFLATION, %</div>`
       + stat('~16%', 'interest rate: loans stay expensive', 'gold', 3.2) + stat('2% drop', 'in real wages: prices rose faster than paychecks', 'red', 3.7))
