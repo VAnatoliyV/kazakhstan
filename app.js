@@ -1097,6 +1097,48 @@ function ratModel() {
   };
 }
 
+
+// ---- dancing Emirati (Al Ayyala cane dance), slide UAE
+function emiratiModel() {
+  const g = new T.Group();
+  const white = std(0xf4f4f0, 0, 0, { roughness: .75 }), skin = std(0xd9a175, 0x6a4026, .55, { roughness: .7 }), black = std(0x141414, 0, 0, { roughness: .5 }), hair = std(0x2a1a10, 0, 0, { roughness: .8 });
+  const body = new T.Group(); g.add(body);
+  const robe = new T.Mesh(new T.LatheGeometry([V(0, 0, 0), V(.42, 0, 0), V(.36, .6, 0), V(.3, 1.2, 0), V(.32, 1.45, 0), V(.2, 1.6, 0), V(0, 1.62, 0)].map(v => new T.Vector2(v.x, v.y)), 32), white); body.add(robe);
+  for (const x of [-.13, .13]) { const sh = new T.Mesh(new T.BoxGeometry(.14, .06, .26), std(0x6b4a2a)); sh.position.set(x, .03, .06); body.add(sh); }
+  const head = new T.Group(); head.position.y = 1.86; body.add(head);
+  head.add(new T.Mesh(new T.SphereGeometry(.22, 24, 18), skin));
+  const beard = new T.Mesh(new T.SphereGeometry(.17, 20, 14, 0, PI * 2, PI / 2, PI / 2), hair); beard.position.set(0, -.07, .08); beard.scale.set(1, .8, 1); head.add(beard);
+  const smile = new T.Mesh(new T.TorusGeometry(.06, .012, 6, 16, PI), std(0xffffff)); smile.rotation.z = PI; smile.position.set(0, -.07, .2); head.add(smile);
+  for (const x of [-.075, .075]) { const e = new T.Mesh(new T.SphereGeometry(.025, 10, 8), black); e.position.set(x, .05, .195); head.add(e); }
+  const cloth = new T.Mesh(new T.SphereGeometry(.25, 24, 16, 0, PI * 2, 0, PI * .38), white); cloth.position.y = .02; head.add(cloth);
+  const drape = new T.Mesh(new T.CylinderGeometry(.25, .36, .55, 24, 1, true, PI * .32, PI * 1.36), white); drape.material = white.clone(); drape.material.side = T.DoubleSide; drape.position.y = -.12; head.add(drape);
+  for (const y of [.09, .14]) { const a = new T.Mesh(new T.TorusGeometry(.225, .022, 8, 32), black); a.rotation.x = PI / 2; a.position.y = y; head.add(a); }
+  const mkArm = side => { const a = new T.Group(); a.position.set(side * .3, 1.45, 0); body.add(a);
+    const up = new T.Mesh(new T.CylinderGeometry(.08, .1, .55, 12), white); up.position.y = -.25; a.add(up);
+    const hand = new T.Mesh(new T.SphereGeometry(.07, 12, 10), skin); hand.position.y = -.55; a.add(hand); return a; };
+  const armR = mkArm(1), armL = mkArm(-1);
+  const cane = new T.Mesh(new T.CylinderGeometry(.015, .015, 1.3, 8), std(0x8a5a2b, 0, 0, { roughness: .6 })); cane.position.y = -.55; armR.add(cane);
+  g.userData = { body, head, armR, armL, cane, robe };
+  return g;
+}
+{
+  const g = new T.Group(); g.position.set(3.4, 3.55, 0); CH.add(g);
+  const m = emiratiModel(); m.scale.setScalar(.95); g.add(m);
+  const disc = new T.Mesh(new T.CircleGeometry(.75, 48), new T.MeshBasicMaterial({ color: 0xffc845, transparent: true, opacity: .25, blending: T.AdditiveBlending, depthWrite: false })); disc.rotation.x = -PI / 2; g.add(disc);
+  const sparks = []; for (let i = 0; i < 8; i++) { const sp = sprite(0xffc845, .14, .8); g.add(sp); sparks.push(sp); }
+  const it = reg('uae', g);
+  it.update = t => {
+    const e = ease(clamp((t - 2.8) / .7, 0, 1)); g.scale.setScalar(Math.max(.001, e));
+    const b = t * 5.2, u = m.userData;
+    u.body.position.y = .08 * Math.abs(Math.sin(b)); u.body.rotation.z = .08 * Math.sin(b / 2); u.body.rotation.y = .3 * Math.sin(t * .9);
+    u.head.rotation.z = -.12 * Math.sin(b / 2); u.head.rotation.x = .08 * Math.sin(b);
+    u.armR.rotation.z = 2.7 + .25 * Math.sin(b); u.armR.rotation.x = .2 * Math.sin(b / 2);
+    u.cane.rotation.x = t * 6; u.armL.rotation.z = -.6 - .35 * Math.sin(b + 1);
+    u.robe.scale.x = u.robe.scale.z = 1 + .04 * Math.sin(b);
+    sparks.forEach((sp, i) => { const q = (t * .4 + i / 8) % 1, a = i / 8 * PI * 2 + t; sp.position.set(Math.cos(a) * (.6 + q * .4), q * 2.6, Math.sin(a) * (.6 + q * .4)); sp.material.opacity *= (1 - q) * e; });
+  };
+}
+
 // ---- STORY labels
 lbl('kz_b', 'chart', () => bubPos(-.4, 13e3).add(V(0, .95, 0)), 'KAZAKHSTAN', 'stk', { dyn: true });
 lbl('ax_x', 'chart', V(3.6, -.35, 0), 'Complexity of what a country makes →', 'axis');
@@ -1227,7 +1269,7 @@ const SLIDES = [
     html: box('left:4vw;top:7vh;width:70vw', kick('My plan') + `<br>` + ttl('Build a second engine'))
   },
   { // 11 UAE
-    shade: 'shadeT', world: 'chart', nobloom: true, cam: { p: V(0, 3.9, 13.5), t: V(0, 1.7, 0), shift: 0, orbit: 0 }, show: [], labels: [],
+    shade: 'shadeT', world: 'chart', nobloom: true, cam: { p: V(0, 3.9, 13.5), t: V(0, 1.7, 0), shift: 0, orbit: 0 }, show: ['uae'], labels: [],
     html: box('left:4vw;top:7vh;width:70vw', kick('Proof it works') + `<br>` + ttl('The UAE did it'))
       + box('left:6vw;right:6vw;top:31vh;display:grid;grid-template-columns:1fr 1fr;gap:4vw',
         `<div class="tm a" style="--d:.8s"><div class="tmh"><span class="yr">1995</span> 🇦🇪</div><div class="tmb">`
