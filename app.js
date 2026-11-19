@@ -703,7 +703,20 @@ function flagCanvas(code, lines) {
     case 'us': for (let i = 0; i < 13; i++) { g.fillStyle = i % 2 ? '#fff' : '#b22234'; g.fillRect(0, i * h / 13, w, h / 13 + 1); } g.fillStyle = '#3c3b6e'; g.fillRect(0, 0, 80, 69); for (let i = 0; i < 5; i++) for (let j = 0; j < 6; j++) circ(8 + j * 13, 8 + i * 13, 2.2, '#fff'); break;
     case 'cn': hs(['#de2910']); g.fillStyle = '#ffde00'; star(g, 34, 32, 16); [[64, 14], [76, 26], [76, 44], [64, 56]].forEach(([x, y]) => star(g, x, y, 5)); break;
     case 'ru': hs(['#fff', '#0039a6', '#d52b1e']); break;
-    case 'kz': hs(['#00afca']); circ(104, 56, 22, '#fec50c'); g.fillStyle = '#fec50c'; for (let i = 0; i < 24; i++) { const a = i / 24 * PI * 2; g.beginPath(); g.moveTo(104 + Math.cos(a) * 26, 56 + Math.sin(a) * 26); g.lineTo(104 + Math.cos(a + .1) * 34, 56 + Math.sin(a + .1) * 34); g.lineTo(104 + Math.cos(a + .2) * 26, 56 + Math.sin(a + .2) * 26); g.fill(); } g.fillRect(12, 8, 10, 112); g.fillRect(70, 96, 70, 6); break;
+    case 'kz': {
+      hs(['#00afca']); g.fillStyle = '#fec50c'; g.strokeStyle = '#fec50c';
+      const cx = 100, cy = 50;
+      circ(cx, cy, 17, '#fec50c');
+      for (let i = 0; i < 32; i++) { const a = i / 32 * PI * 2, b = .08; g.beginPath(); g.moveTo(cx + Math.cos(a - b) * 21, cy + Math.sin(a - b) * 21); g.lineTo(cx + Math.cos(a) * 31, cy + Math.sin(a) * 31); g.lineTo(cx + Math.cos(a + b) * 21, cy + Math.sin(a + b) * 21); g.fill(); }
+      for (const sgn of [-1, 1]) { g.save(); g.translate(cx, 0); g.scale(sgn, 1); g.beginPath();
+        g.moveTo(0, 96); g.quadraticCurveTo(-34, 95, -44, 70); g.lineTo(-50, 56); g.lineTo(-44, 62); g.lineTo(-46, 52); g.lineTo(-40, 60); g.lineTo(-40, 50); g.lineTo(-35, 62);
+        g.quadraticCurveTo(-28, 86, 0, 88); g.closePath(); g.fill(); g.restore(); }
+      g.beginPath(); g.ellipse(cx + 4, 98, 17, 5, -.08, 0, 7); g.fill();
+      g.beginPath(); g.arc(cx - 13, 95, 4, 0, 7); g.fill();
+      g.lineWidth = 2.4; g.lineCap = 'round';
+      for (let y0 = 6; y0 < 124; y0 += 17) { const X = 16; g.beginPath(); g.moveTo(X, y0); g.lineTo(X + 5, y0 + 6); g.lineTo(X, y0 + 12); g.lineTo(X - 5, y0 + 6); g.closePath(); g.stroke();
+        for (const sg of [-1, 1]) { g.beginPath(); g.moveTo(X, y0 + 12); g.quadraticCurveTo(X + sg * 8, y0 + 14, X + sg * 5, y0 + 7); g.stroke(); } }
+      break; }
     case 'ml': vs(['#14b53a', '#fcd116', '#ce1126']); break;
     case 'gn': vs(['#ce1126', '#fcd116', '#009460']); break;
     case 'bf': hs(['#ef2b2d', '#009e49']); g.fillStyle = '#fcd116'; star(g, 96, 64, 22); break;
